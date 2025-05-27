@@ -290,7 +290,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     <script src="js/main.js"></script>
-    
-    -- 커밋 주석 추가
+
+#### 변경사항
 </body>
 </html>
