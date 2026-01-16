@@ -8,9 +8,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CinemaWorld - 예매 완료</title>
-    <link rel="stylesheet" href="css/Style.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/booking.css">
+    <link rel="stylesheet" href="../css/Style.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/booking.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
         .booking-complete-section {
@@ -133,7 +133,7 @@
 <body class="main-page">
     <div class="site-wrapper">
         <!-- 헤더 포함 -->
-        <jsp:include page="header.jsp" />
+        <jsp:include page="../header.jsp" />
         
         <main class="main-content">
             <section class="booking-complete-section">
@@ -153,6 +153,7 @@
                     
                     try {
                         conn = DBConnection.getConnection();
+                        // total_price 필드 제거
                         String sql = "SELECT b.*, DATE_FORMAT(b.booking_date, '%Y년 %m월 %d일 %H:%i') AS formatted_booking_date " +
                                     "FROM booking b WHERE b.id = ?";
                         pstmt = conn.prepareStatement(sql);
@@ -235,8 +236,8 @@
                     </div>
                     
                     <div class="action-buttons">
-                        <a href="index.jsp" class="action-btn home-btn">홈으로</a>
-                        <a href="my-bookings.jsp" class="action-btn my-bookings-btn">예매 내역</a>
+                        <a href="../index.jsp" class="action-btn home-btn">홈으로</a>
+                        <a href="../member/my-bookings.jsp" class="action-btn my-bookings-btn">예매 내역</a>
                     </div>
                 </div>
                 
@@ -250,7 +251,7 @@
                         <p>요청하신 예매 정보를 찾을 수 없습니다.</p>
                     </div>
                     <div class="action-buttons">
-                        <a href="index.jsp" class="action-btn home-btn">홈으로 돌아가기</a>
+                        <a href="../index.jsp" class="action-btn home-btn">홈으로 돌아가기</a>
                     </div>
                 </div>
                 <%
@@ -263,9 +264,10 @@
                         <i class="fas fa-exclamation-circle"></i>
                         <h2>데이터베이스 오류</h2>
                         <p>예매 정보를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
+                        <p>오류 메시지: <%= e.getMessage() %></p>
                     </div>
                     <div class="action-buttons">
-                        <a href="index.jsp" class="action-btn home-btn">홈으로 돌아가기</a>
+                        <a href="../index.jsp" class="action-btn home-btn">홈으로 돌아가기</a>
                     </div>
                 </div>
                 <%
@@ -283,7 +285,7 @@
         </main>
         
         <!-- 푸터 포함 -->
-        <jsp:include page="footer.jsp" />
+        <jsp:include page="../footer.jsp" />
     </div>
 </body>
 </html>

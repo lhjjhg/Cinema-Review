@@ -306,7 +306,27 @@
         <!-- 글쓰기 버튼 -->
         <div class="button-container">
             <% if (session.getAttribute("userId") != null) { %>
-                <a href="write.jsp<%= categoryId > 0 ? "?category=" + categoryId : "" %>" class="write-button">글쓰기</a>
+                <% 
+                    // 공지사항 카테고리 체크
+                    boolean isNoticeCategory = false;
+                    String userRole = (String) session.getAttribute("userRole");
+                    boolean isAdmin = (userRole != null && userRole.equals("ADMIN"));
+                    
+                    // 현재 카테고리가 공지사항인지 확인
+                    if (categoryId > 0) {
+                        for (BoardCategory category : categories) {
+                            if (category.getId() == categoryId && "공지사항".equals(category.getName())) {
+                                isNoticeCategory = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // 공지사항 카테고리가 아니거나, 공지사항 카테고리이지만 관리자인 경우에만 글쓰기 버튼 표시
+                    if (!isNoticeCategory || isAdmin) {
+                %>
+                    <a href="write.jsp<%= categoryId > 0 ? "?category=" + categoryId : "" %>" class="write-button">글쓰기</a>
+                <% } %>
             <% } else { %>
                 <a href="${pageContext.request.contextPath}/member/login.jsp" class="write-button">로그인 후 글쓰기</a>
             <% } %>

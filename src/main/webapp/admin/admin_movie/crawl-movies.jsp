@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CinemaWorld - 영화 정보 크롤링</title>
-    <link rel="stylesheet" href="../Style.css">
-    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../../css/Style.css">
+    <link rel="stylesheet" href="../../css/main.css">
     <style>
         .admin-container {
             max-width: 800px;
@@ -139,7 +139,7 @@
 <body class="main-page">
     <div class="site-wrapper">
         <!-- 헤더 포함 -->
-        <jsp:include page="../header.jsp" />
+        <jsp:include page="../../header.jsp" />
         
         <main class="main-content">
             <div class="admin-container">
@@ -178,7 +178,7 @@
         </main>
         
         <!-- 푸터 포함 -->
-        <jsp:include page="../footer.jsp" />
+        <jsp:include page="../../footer.jsp" />
     </div>
     
     <script>

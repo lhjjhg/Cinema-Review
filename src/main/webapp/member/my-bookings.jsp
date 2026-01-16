@@ -7,9 +7,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CinemaWorld - 나의 예매내역</title>
-    <link rel="stylesheet" href="css/Style.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/booking.css">
+    <link rel="stylesheet" href="../css/Style.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/booking.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         .main-content {
@@ -227,7 +227,7 @@
 <body class="main-page">
     <div class="site-wrapper">
         <!-- 헤더 포함 -->
-        <jsp:include page="header.jsp" />
+        <jsp:include page="../header.jsp" />
         
         <main class="main-content">
             <section class="bookings-section">
@@ -262,7 +262,7 @@
                     Integer userId = (Integer) session.getAttribute("userId");
                     if (userId == null) {
                         // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
-                        response.sendRedirect("member/login.jsp?redirect=my-bookings.jsp");
+                        response.sendRedirect("login.jsp?redirect=member/my-bookings.jsp");
                         return;
                     }
                     
@@ -323,7 +323,7 @@
                             <p class="booking-details"><strong>인원:</strong> 일반 <%= adultCount %>명, 청소년 <%= youthCount %>명</p>
                             <p class="booking-details"><strong>예매일:</strong> <%= bookingDate %></p>
                             <div class="booking-actions">
-                                <a href="booking-detail.jsp?id=<%= bookingId %>" class="booking-btn detail-btn">상세보기</a>
+                                <a href="../booking/booking-detail.jsp?id=<%= bookingId %>" class="booking-btn detail-btn">상세보기</a>
                                 <button class="booking-btn cancel-btn" onclick="cancelBooking('<%= bookingId %>')">예매취소</button>
                             </div>
                         </div>
@@ -337,7 +337,7 @@
                         <i class="fas fa-ticket-alt"></i>
                         <h2>예매 내역이 없습니다</h2>
                         <p>아직 예매한 영화가 없습니다. 지금 영화를 예매해보세요!</p>
-                        <a href="movies.jsp" class="booking-btn primary">영화 예매하기</a>
+                        <a href="../movies.jsp" class="booking-btn primary">영화 예매하기</a>
                     </div>
                     <%
                         }
@@ -348,7 +348,7 @@
                         <i class="fas fa-exclamation-circle"></i>
                         <h2>데이터베이스 오류</h2>
                         <p>예매 내역을 불러오는 중 오류가 발생했습니다: <%= e.getMessage() %></p>
-                        <a href="index.jsp" class="booking-btn primary">홈으로 돌아가기</a>
+                        <a href="../index.jsp" class="booking-btn primary">홈으로 돌아가기</a>
                     </div>
                     <%
                     } finally {
@@ -366,7 +366,7 @@
         </main>
         
         <!-- 푸터 포함 -->
-        <jsp:include page="footer.jsp" />
+        <jsp:include page="../footer.jsp" />
     </div>
     
     <script>
@@ -379,7 +379,7 @@
                 button.disabled = true;
                 
                 // 예매 취소 요청
-                window.location.href = 'BookingCancelServlet?id=' + bookingId;
+                window.location.href = '../BookingCancelServlet?id=' + bookingId;
             }
         }
     </script>

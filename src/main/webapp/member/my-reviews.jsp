@@ -10,8 +10,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CinemaWorld - 내가 작성한 리뷰</title>
-    <link rel="stylesheet" href="css/Style.css">
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="../css/Style.css">
+    <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         .container {
@@ -363,7 +363,7 @@
         
         // 로그인 상태가 아니면 로그인 페이지로 리다이렉트
         if (username == null || userId == null) {
-            response.sendRedirect("member/login.jsp");
+            response.sendRedirect("login.jsp");
             return;
         }
         
@@ -410,13 +410,13 @@
 
     <div class="site-wrapper">
         <!-- 헤더 포함 -->
-        <jsp:include page="header.jsp" />
+        <jsp:include page="../header.jsp" />
         
         <main class="main-content">
             <div class="container">
                 <div class="page-header">
                     <h1 class="page-title">내가 작성한 리뷰</h1>
-                    <a href="movies.jsp" class="btn btn-primary">영화 목록으로</a>
+                    <a href="../movies.jsp" class="btn btn-primary">영화 목록으로</a>
                 </div>
                 
                 <% if (totalReviews > 0) { %>
@@ -447,19 +447,19 @@
                             
                             // 포스터 URL이 없는 경우 기본 이미지 사용
                             if (posterUrl == null || posterUrl.isEmpty()) {
-                                posterUrl = "image/default-movie.jpg";
+                                posterUrl = "../image/default-movie.jpg";
                             }
                     %>
                     <div class="review-card" id="review-<%= reviewId %>">
                         <div class="movie-poster-container">
-                            <a href="movie-detail.jsp?id=<%= movieId %>">
-                                <img src="<%= posterUrl %>" alt="<%= movieTitle %> 포스터" class="movie-poster" onerror="this.src='image/default-movie.jpg';">
+                            <a href="../movie-detail.jsp?id=<%= movieId %>">
+                                <img src="<%= posterUrl %>" alt="<%= movieTitle %> 포스터" class="movie-poster" onerror="this.src='../image/default-movie.jpg';">
                             </a>
                         </div>
                         <div class="review-content-container">
                             <div class="review-header">
                                 <div>
-                                    <h3 class="movie-title"><a href="movie-detail.jsp?id=<%= movieId %>"><%= movieTitle %></a></h3>
+                                    <h3 class="movie-title"><a href="../movie-detail.jsp?id=<%= movieId %>"><%= movieTitle %></a></h3>
                                     <div class="review-rating">
                                         <% for (int i = 1; i <= 5; i++) { %>
                                             <i class="fas fa-star <%= i <= rating ? "filled" : "" %>"></i>
@@ -475,7 +475,7 @@
                             </div>
                             <div class="review-text"><%= content %></div>
                             <div class="review-actions">
-                                <a href="movie-detail.jsp?id=<%= movieId %>#review-<%= reviewId %>" class="btn btn-secondary">
+                                <a href="../movie-detail.jsp?id=<%= movieId %>#review-<%= reviewId %>" class="btn btn-secondary">
                                     <i class="fas fa-external-link-alt"></i> 영화 페이지에서 보기
                                 </a>
                                 <button class="btn btn-primary edit-review-btn" data-id="<%= reviewId %>" data-movie-id="<%= movieId %>" data-rating="<%= rating %>" data-content="<%= content.replace("\"", "&quot;").replace("\n", "\\n") %>">
@@ -518,14 +518,14 @@
                     <i class="fas fa-star"></i>
                     <p>작성한 리뷰가 없습니다.</p>
                     <p>영화 상세 페이지에서 리뷰를 작성해보세요!</p>
-                    <a href="movies.jsp" class="btn btn-primary">영화 보러가기</a>
+                    <a href="../movies.jsp" class="btn btn-primary">영화 보러가기</a>
                 </div>
                 <% } %>
             </div>
         </main>
         
         <!-- 푸터 포함 -->
-        <jsp:include page="footer.jsp" />
+        <jsp:include page="../footer.jsp" />
     </div>
     
     <!-- 리뷰 수정 모달 -->
@@ -536,7 +536,7 @@
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
-                <form id="editReviewForm" action="ReviewServlet" method="post">
+                <form id="editReviewForm" action="../ReviewServlet" method="post">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="id" id="editReviewId">
                     <input type="hidden" name="movieId" id="editMovieId">
@@ -582,7 +582,7 @@
                 <p>정말로 이 리뷰를 삭제하시겠습니까?</p>
                 <p>이 작업은 되돌릴 수 없습니다.</p>
                 
-                <form id="deleteReviewForm" action="ReviewServlet" method="post">
+                <form id="deleteReviewForm" action="../ReviewServlet" method="post">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="id" id="deleteReviewId">
                     <input type="hidden" name="movieId" id="deleteMovieId">
@@ -596,7 +596,7 @@
         </div>
     </div>
     
-    <script src="js/main.js"></script>
+    <script src="../js/main.js"></script>
     <script>
         // 모달 관련 스크립트
         const editModal = document.getElementById('editReviewModal');

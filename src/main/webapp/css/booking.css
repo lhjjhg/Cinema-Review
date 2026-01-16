@@ -193,62 +193,81 @@
 }
 
 /* 날짜 목록 스타일 */
-.date-list {
-  display: flex;
-  flex-wrap: wrap;
+/* 기존 .date-list 스타일은 유지하고 새로운 세로형 날짜 스타일 추가 */
+
+/* 년월 표시 */
+.date-year-month {
+  background-color: #2a2a2a;
+  padding: 15px;
+  text-align: center;
+  border-bottom: 1px solid #333333;
+}
+
+.year-month-display {
+  font-size: 16px;
+  font-weight: bold;
+  color: #e0e0e0;
+}
+
+/* 세로형 날짜 목록 */
+.date-list-vertical {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.date-item {
-  width: calc(100% / 7);
-  text-align: center;
-  padding: 10px 0;
-  cursor: pointer;
+.date-item-vertical {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
   border-bottom: 1px solid #333333;
-  border-right: 1px solid #333333;
+  cursor: pointer;
   color: #ccc;
   transition: all 0.2s ease;
+  background-color: #1e1e1e;
 }
 
-.date-item:nth-child(7n) {
-  border-right: none;
-}
-
-.date-item:hover {
+.date-item-vertical:hover {
   background-color: #2a2a2a;
   color: #fff;
 }
 
-.date-item.selected {
-  background-color: #333;
+.date-item-vertical.selected {
+  background-color: #0d47a1;
   color: #fff;
   font-weight: bold;
 }
 
-.date-day {
+.day-name {
   font-size: 14px;
-  margin-bottom: 5px;
+  font-weight: 500;
+  min-width: 20px;
 }
 
-.date-day.saturday {
-  color: #3498db;
+.day-name.saturday {
+  color: #2196f3;
 }
 
-.date-day.sunday {
-  color: #e74c3c;
+.day-name.sunday {
+  color: #f44336;
 }
 
-.date-item.selected .date-day {
-  color: inherit;
+.date-item-vertical.selected .day-name.saturday,
+.date-item-vertical.selected .day-name.sunday {
+  color: #fff;
 }
 
-.date-num {
+.day-number {
   font-size: 16px;
+  font-weight: bold;
 }
 
-/* 시간 목록 스타일 */
+/* 기존 가로형 날짜 스타일은 숨김 */
+.date-list {
+  display: none;
+}
+
 .time-list-container {
   padding: 15px;
   height: 100%;

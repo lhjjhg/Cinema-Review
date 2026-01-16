@@ -38,7 +38,6 @@ public class InitScreeningsServlet extends HttpServlet {
         out.println("body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; background-color: #f4f4f4; }");
         out.println(".container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }");
         out.println("h1 { color: #333; }");
-        out.println("pre { background: #f9f9f9; padding: 10px; border-radius: 5px; overflow-x: auto; white-space: pre-wrap; }");
         out.println(".log { background: #f0f0f0; padding: 15px; border-radius: 5px; max-height: 400px; overflow-y: auto; margin-top: 20px; }");
         out.println(".success { color: green; }");
         out.println(".error { color: red; }");
@@ -48,7 +47,7 @@ public class InitScreeningsServlet extends HttpServlet {
         out.println("<body>");
         out.println("<div class='container'>");
         out.println("<h1>상영 정보 초기화</h1>");
-        out.println("<p>상영 정보를 초기화하고 더미 데이터를 생성합니다.</p>");
+        out.println("<p>기존 프론트엔드 구조와 동일한 상영 정보를 생성합니다.</p>");
         
         out.println("<div class='log'>");
         
@@ -62,14 +61,52 @@ public class InitScreeningsServlet extends HttpServlet {
             
             // 기존 상영 정보 삭제
             out.println("기존 상영 정보 삭제 중...<br>");
-            String truncateSql = "TRUNCATE TABLE screening";
+            String truncateSql = "DELETE FROM screening";
             pstmt = conn.prepareStatement(truncateSql);
             pstmt.executeUpdate();
             out.println("기존 상영 정보 삭제 완료<br>");
             
+            // 기존 상영관 정보 삭제
+            out.println("기존 상영관 정보 삭제 중...<br>");
+            String truncateScreenSql = "DELETE FROM screen";
+            pstmt = conn.prepareStatement(truncateScreenSql);
+            pstmt.executeUpdate();
+            out.println("기존 상영관 정보 삭제 완료<br>");
+            
+            // 상영관 정보 생성 (프론트엔드와 동일한 구조)
+            out.println("상영관 정보 생성 중...<br>");
+            String insertScreenSql = "INSERT INTO screen (theater_id, name, seats_total) VALUES (?, ?, ?)";
+            pstmt = conn.prepareStatement(insertScreenSql);
+            
+            // 극장 ID 1부터 24까지 (booking_tables.sql의 극장 수)
+            for (int theaterId = 1; theaterId <= 24; theaterId++) {
+                // 1관 (일반) - 150석
+                pstmt.setInt(1, theaterId);
+                pstmt.setString(2, "1관 (일반)");
+                pstmt.setInt(3, 150);
+                pstmt.addBatch();
+                
+                // 2관 (일반) - 120석
+                pstmt.setInt(1, theaterId);
+                pstmt.setString(2, "2관 (일반)");
+                pstmt.setInt(3, 120);
+                pstmt.addBatch();
+                
+                // 3관 (IMAX) - 50석
+                pstmt.setInt(1, theaterId);
+                pstmt.setString(2, "3관 (IMAX)");
+                pstmt.setInt(3, 50);
+                pstmt.addBatch();
+            }
+            pstmt.executeBatch();
+            out.println("상영관 정보 생성 완료 (72개 상영관)<br>");
+            out.println("- 1관 (일반): 150석<br>");
+            out.println("- 2관 (일반): 120석<br>");
+            out.println("- 3관 (IMAX): 50석<br>");
+            
             // 영화 목록 가져오기
             out.println("영화 목록 가져오는 중...<br>");
-            String movieSql = "SELECT movie_id, title FROM movie WHERE status = 'current'";
+            String movieSql = "SELECT movie_id, title FROM movie WHERE status = 'current' LIMIT 10";
             pstmt = conn.prepareStatement(movieSql);
             rs = pstmt.executeQuery();
             
@@ -88,28 +125,32 @@ public class InitScreeningsServlet extends HttpServlet {
             
             // 상영관 목록 가져오기
             out.println("상영관 목록 가져오는 중...<br>");
-            String screenSql = "SELECT id, name, seats_total FROM screen";
+            String screenSql = "SELECT id, name, seats_total, theater_id FROM screen ORDER BY theater_id, name";
             pstmt = conn.prepareStatement(screenSql);
             rs = pstmt.executeQuery();
             
-            // 상영관 ID 배열 생성
-            java.util.List<Integer> screenIds = new java.util.ArrayList<>();
+            // 상영관 정보를 맵으로 저장
+            java.util.Map<String, java.util.List<Integer>> screensByType = new java.util.HashMap<>();
             java.util.Map<Integer, Integer> screenSeats = new java.util.HashMap<>();
+            
             while (rs.next()) {
                 int screenId = rs.getInt("id");
-                screenIds.add(screenId);
-                screenSeats.put(screenId, rs.getInt("seats_total"));
-                out.println("- " + rs.getString("name") + " (" + rs.getInt("seats_total") + "석)<br>");
+                String screenName = rs.getString("name");
+                int seatsTotal = rs.getInt("seats_total");
+                
+                screenSeats.put(screenId, seatsTotal);
+                
+                if (!screensByType.containsKey(screenName)) {
+                    screensByType.put(screenName, new java.util.ArrayList<>());
+                }
+                screensByType.get(screenName).add(screenId);
             }
             
-            if (screenIds.isEmpty()) {
-                out.println("<span class='error'>등록된 상영관이 없습니다. 먼저 상영관을 등록해주세요.</span><br>");
-                conn.rollback();
-                return;
-            }
-            
-            // 상영 시간 배열 생성
-            String[] times = {"10:00", "12:30", "15:00", "17:30", "20:00", "22:30"};
+            // 프론트엔드와 동일한 상영 시간 설정
+            java.util.Map<String, String[]> screenTimes = new java.util.HashMap<>();
+            screenTimes.put("1관 (일반)", new String[]{"10:30", "13:00", "15:30", "18:00", "20:30"});
+            screenTimes.put("2관 (일반)", new String[]{"11:00", "13:30", "16:00", "18:30", "21:00"});
+            screenTimes.put("3관 (IMAX)", new String[]{"09:30", "12:30", "15:30", "18:30"});
             
             // 오늘부터 14일간의 상영 정보 생성
             out.println("상영 정보 생성 중...<br>");
@@ -118,8 +159,8 @@ public class InitScreeningsServlet extends HttpServlet {
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             
-            String insertSql = "INSERT INTO screening (movie_id, screen_id, screening_date, screening_time, available_seats) VALUES (?, ?, ?, ?, ?)";
-            pstmt = conn.prepareStatement(insertSql);
+            String insertScreeningSql = "INSERT INTO screening (movie_id, screen_id, screening_date, screening_time, available_seats) VALUES (?, ?, ?, ?, ?)";
+            pstmt = conn.prepareStatement(insertScreeningSql);
             
             int count = 0;
             
@@ -127,45 +168,40 @@ public class InitScreeningsServlet extends HttpServlet {
                 Date date = cal.getTime();
                 String formattedDate = dateFormat.format(date);
                 
-                for (int screenId : screenIds) {
-                    // 각 상영관마다 2-4개의 영화 선택
-                    int movieCount = random.nextInt(3) + 2; // 2-4개
-                    java.util.List<String> selectedMovies = new java.util.ArrayList<>();
+                // 각 상영관 타입별로 처리
+                for (String screenType : screenTimes.keySet()) {
+                    String[] times = screenTimes.get(screenType);
+                    java.util.List<Integer> screenIds = screensByType.get(screenType);
                     
-                    for (int i = 0; i < movieCount; i++) {
-                        String movieId = movieIds.get(random.nextInt(movieIds.size()));
-                        if (!selectedMovies.contains(movieId)) {
-                            selectedMovies.add(movieId);
-                        }
-                    }
-                    
-                    for (String movieId : selectedMovies) {
-                        // 각 영화마다 2-4개의 상영 시간 선택
-                        int timeCount = random.nextInt(3) + 2; // 2-4개
-                        java.util.List<String> selectedTimes = new java.util.ArrayList<>();
-                        
-                        for (int i = 0; i < timeCount; i++) {
-                            String time = times[random.nextInt(times.length)];
-                            if (!selectedTimes.contains(time)) {
-                                selectedTimes.add(time);
+                    if (screenIds != null) {
+                        for (int screenId : screenIds) {
+                            // 각 상영관마다 2-3개의 영화 선택
+                            int movieCount = random.nextInt(2) + 2; // 2-3개
+                            java.util.List<String> selectedMovies = new java.util.ArrayList<>();
+                            
+                            for (int i = 0; i < movieCount && selectedMovies.size() < movieIds.size(); i++) {
+                                String movieId = movieIds.get(random.nextInt(movieIds.size()));
+                                if (!selectedMovies.contains(movieId)) {
+                                    selectedMovies.add(movieId);
+                                }
                             }
-                        }
-                        
-                        // 선택된 시간 정렬
-                        java.util.Collections.sort(selectedTimes);
-                        
-                        for (String time : selectedTimes) {
-                            int seatsTotal = screenSeats.get(screenId);
-                            int availableSeats = seatsTotal - random.nextInt(seatsTotal / 4); // 25% 이내 랜덤 예약
                             
-                            pstmt.setString(1, movieId);
-                            pstmt.setInt(2, screenId);
-                            pstmt.setString(3, formattedDate);
-                            pstmt.setString(4, time);
-                            pstmt.setInt(5, availableSeats);
-                            pstmt.addBatch();
-                            
-                            count++;
+                            for (String movieId : selectedMovies) {
+                                // 각 영화마다 해당 상영관의 모든 시간대 사용
+                                for (String time : times) {
+                                    int seatsTotal = screenSeats.get(screenId);
+                                    int availableSeats = seatsTotal - random.nextInt(seatsTotal / 4); // 25% 이내 랜덤 예약
+                                    
+                                    pstmt.setString(1, movieId);
+                                    pstmt.setInt(2, screenId);
+                                    pstmt.setString(3, formattedDate);
+                                    pstmt.setString(4, time);
+                                    pstmt.setInt(5, availableSeats);
+                                    pstmt.addBatch();
+                                    
+                                    count++;
+                                }
+                            }
                         }
                     }
                 }
@@ -173,11 +209,15 @@ public class InitScreeningsServlet extends HttpServlet {
                 cal.add(Calendar.DATE, 1);
             }
             
-            int[] results = pstmt.executeBatch();
+            pstmt.executeBatch();
             conn.commit();
             
             out.println("상영 정보 생성 완료. 총 " + count + "개의 상영 정보가 생성되었습니다.<br>");
-            out.println("<span class='success'>모든 작업이 성공적으로 완료되었습니다.</span>");
+            out.println("<span class='success'>프론트엔드와 동일한 구조로 모든 작업이 성공적으로 완료되었습니다.</span><br>");
+            out.println("<br>생성된 상영 시간표:<br>");
+            out.println("- 1관 (일반): 10:30, 13:00, 15:30, 18:00, 20:30<br>");
+            out.println("- 2관 (일반): 11:00, 13:30, 16:00, 18:30, 21:00<br>");
+            out.println("- 3관 (IMAX): 09:30, 12:30, 15:30, 18:30<br>");
             
         } catch (SQLException e) {
             try {
@@ -205,7 +245,7 @@ public class InitScreeningsServlet extends HttpServlet {
         
         out.println("</div>");
         
-        out.println("<a href='../index.jsp'>메인 페이지로 이동</a>");
+        out.println("<a href='../index.jsp'>관리자 메인 페이지로 이동</a>");
         out.println("</div>");
         out.println("</body>");
         out.println("</html>");

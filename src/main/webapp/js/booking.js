@@ -80,13 +80,13 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   })
 
-  // 날짜 선택 이벤트
-  const dateItems = document.querySelectorAll(".date-item")
-  dateItems.forEach((item) => {
+  // 세로형 날짜 선택 이벤트
+  const dateItemsVertical = document.querySelectorAll(".date-item-vertical")
+  dateItemsVertical.forEach((item) => {
     item.addEventListener("click", function () {
       // 이미 선택된 날짜 선택 해제
-      document.querySelectorAll(".date-item.selected").forEach((selected) => {
-        selected.classList.remove("selected")
+      dateItemsVertical.forEach((dateItem) => {
+        dateItem.classList.remove("selected")
       })
 
       // 현재 날짜 선택
@@ -111,11 +111,8 @@ document.addEventListener("DOMContentLoaded", () => {
       timeList.style.display = "block"
       noScheduleMessage.style.display = "none"
 
-      // 고정된 더미 데이터 사용
-      setTimeout(() => {
-        const screenings = getFixedScreenings(selectedMovie, selectedTheater, selectedDate)
-        renderScreenings(screenings)
-      }, 500) // 로딩 효과를 위해 0.5초 지연
+      // 서버에서 실제 상영 정보 가져오기
+      fetchScreeningInfo(selectedMovie, selectedTheater, selectedDate)
     } else {
       // 선택되지 않은 항목이 있으면 메시지 표시
       timeList.style.display = "none"
@@ -138,102 +135,69 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 고정된 상영 정보 생성 함수
-  function getFixedScreenings(movieId, theaterId, date) {
-    // 상영관 정보 (고정)
-    const screens = [
-      {
-        screenName: "1관 (일반)",
-        screenings: [
-          { id: 101, time: "10:30", availableSeats: 150, seatsTotal: 150 },
-          { id: 102, time: "13:00", availableSeats: 150, seatsTotal: 150 },
-          { id: 103, time: "15:30", availableSeats: 150, seatsTotal: 150 },
-          { id: 104, time: "18:00", availableSeats: 150, seatsTotal: 150 },
-          { id: 105, time: "20:30", availableSeats: 150, seatsTotal: 150 },
-        ],
-      },
-      {
-        screenName: "2관 (일반)",
-        screenings: [
-          { id: 201, time: "11:00", availableSeats: 120, seatsTotal: 120 },
-          { id: 202, time: "13:30", availableSeats: 120, seatsTotal: 120 },
-          { id: 203, time: "16:00", availableSeats: 120, seatsTotal: 120 },
-          { id: 204, time: "18:30", availableSeats: 120, seatsTotal: 120 },
-          { id: 205, time: "21:00", availableSeats: 120, seatsTotal: 120 },
-        ],
-      },
-      {
-        screenName: "3관 (IMAX)",
-        screenings: [
-          { id: 301, time: "09:30", availableSeats: 50, seatsTotal: 50 },
-          { id: 302, time: "12:30", availableSeats: 50, seatsTotal: 50 },
-          { id: 303, time: "15:30", availableSeats: 50, seatsTotal: 50 },
-          { id: 304, time: "18:30", availableSeats: 50, seatsTotal: 50 },
-          { id: 305, time: "21:30", availableSeats: 50, seatsTotal: 50 },
-        ],
-      },
-    ]
-
-    // 데이터베이스에서 예매 정보 가져오기
-    fetch(`GetScreeningInfoServlet?movieId=${movieId}&theaterId=${theaterId}&date=${date}`)
+  // 서버에서 상영 정보를 가져오는 함수
+  function fetchScreeningInfo(movieId, theaterId, date) {
+    fetch(`../GetScreeningInfoServlet?movieId=${movieId}&theaterId=${theaterId}&date=${date}`)
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
-          // 예매된 좌석 수 반영
-          data.screenings.forEach((dbScreening) => {
-            screens.forEach((screen) => {
-              screen.screenings.forEach((screening) => {
-                if (screening.id == dbScreening.id) {
-                  screening.availableSeats = dbScreening.availableSeats
-                }
-              })
-            })
-          })
+        if (data.success && data.screenings) {
+          renderScreeningsFromServer(data.screenings)
+        } else {
+          renderNoScreenings()
         }
       })
       .catch((error) => {
         console.error("Error fetching screening info:", error)
+        renderNoScreenings()
       })
-
-    return screens
   }
 
-  // 상영 시간표 렌더링 함수
-  function renderScreenings(screens) {
+  // 서버 데이터를 기반으로 상영 시간표 렌더링
+  function renderScreeningsFromServer(screenings) {
     const timeList = document.querySelector(".time-list")
 
-    if (!screens || screens.length === 0) {
-      timeList.innerHTML =
-        '<div class="no-screenings"><i class="fas fa-calendar-times"></i><br>선택하신 조건에 맞는 상영 일정이 없습니다.</div>'
+    if (!screenings || screenings.length === 0) {
+      renderNoScreenings()
       return
     }
 
+    // 상영관별로 그룹화
+    const screenGroups = {}
+    screenings.forEach((screening) => {
+      const screenName = screening.screenName
+      if (!screenGroups[screenName]) {
+        screenGroups[screenName] = []
+      }
+      screenGroups[screenName].push(screening)
+    })
+
     let html = ""
 
-    screens.forEach((screen) => {
+    Object.keys(screenGroups).forEach((screenName) => {
       html += `
         <div class="screen-group">
-          <div class="screen-name"><i class="fas fa-tv"></i> ${screen.screenName}</div>
+          <div class="screen-name"><i class="fas fa-tv"></i> ${screenName}</div>
           <div class="time-buttons">
       `
 
-      screen.screenings.forEach((screening) => {
+      screenGroups[screenName].forEach((screening) => {
         const time = screening.time
         const availableSeats = screening.availableSeats
-        const seatsTotal = screening.seatsTotal
+        const totalSeats = screening.totalSeats
+        const bookedSeats = screening.bookedSeats || 0
 
         // 좌석 상태에 따른 스타일 클래스
         let seatClass = ""
         if (availableSeats === 0) {
           seatClass = "sold-out"
-        } else if (availableSeats < seatsTotal * 0.2) {
+        } else if (availableSeats < totalSeats * 0.2) {
           seatClass = "few-seats"
         }
 
         html += `
           <div class="time-button ${seatClass}" data-screening-id="${screening.id}">
             <div class="time-info">${time}</div>
-            <div class="seat-info">${availableSeats}/${seatsTotal}석</div>
+            <div class="seat-info">${availableSeats}/${totalSeats}석</div>
           </div>
         `
       })
@@ -246,6 +210,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     timeList.innerHTML = html
 
+    // 시간 버튼 클릭 이벤트 추가
+    addTimeButtonEvents()
+  }
+
+  // 상영 일정이 없을 때 표시
+  function renderNoScreenings() {
+    const timeList = document.querySelector(".time-list")
+    timeList.innerHTML =
+      '<div class="no-screenings"><i class="fas fa-calendar-times"></i><br>선택하신 조건에 맞는 상영 일정이 없습니다.</div>'
+  }
+
+  // 시간 버튼 이벤트 추가 함수
+  function addTimeButtonEvents() {
     // 시간 버튼 클릭 이벤트 추가
     const timeButtons = document.querySelectorAll(".time-button:not(.sold-out)")
     timeButtons.forEach((button) => {
@@ -262,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const theaterName = selectedTheaterElement ? selectedTheaterElement.textContent.trim() : ""
 
         // 선택된 날짜 정보 가져오기
-        const selectedDateElement = document.querySelector(".date-item.selected")
+        const selectedDateElement = document.querySelector(".date-item-vertical.selected")
         const selectedDate = selectedDateElement ? selectedDateElement.getAttribute("data-date") : ""
 
         // 시간 정보 가져오기
@@ -322,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 첫 번째 날짜 자동 선택 (오늘)
-  const firstDateItem = document.querySelector(".date-item")
+  const firstDateItem = document.querySelector(".date-item-vertical")
   if (firstDateItem) {
     firstDateItem.click()
   }

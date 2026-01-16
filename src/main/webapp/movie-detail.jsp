@@ -134,7 +134,7 @@
                         
                         <div class="movie-actions">
                             <% if ("current".equals(status)) { %>
-                                <a href="booking.jsp?id=<%= movieId %>" class="booking-btn">
+                                <a href="booking/booking.jsp?id=<%= movieId %>" class="booking-btn">
                                     예매
                                 </a>
                             <% } else { %>

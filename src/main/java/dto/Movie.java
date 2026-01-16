@@ -10,7 +10,7 @@ public class Movie {
     private String genre;
     private String runningTime;
     private String status; // current, coming, old
-    private MovieDetail detail; // 영화 상세 정보 추가
+    private MovieDetail detail; 
     
     public Movie() {
     }

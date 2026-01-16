@@ -6,8 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>영화 데이터 초기화</title>
-    <link rel="stylesheet" href="../Style.css">
-    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../../css/Style.css">
+    <link rel="stylesheet" href="../../css/main.css">
     <style>
         .admin-container {
             max-width: 800px;
@@ -229,7 +229,7 @@
 <body class="main-page">
     <div class="site-wrapper">
         <!-- 헤더 포함 -->
-        <jsp:include page="../header.jsp" />
+        <jsp:include page="../../header.jsp" />
         
         <main class="main-content">
             <div class="admin-container">
@@ -266,13 +266,13 @@
                 </form>
                 
                 <div class="button-container">
-                    <a href="index.jsp" class="admin-btn secondary">관리자 메인으로 돌아가기</a>
+                    <a href="../index.jsp" class="admin-btn secondary">관리자 메인으로 돌아가기</a>
                 </div>
             </div>
         </main>
         
         <!-- 푸터 포함 -->
-        <jsp:include page="../footer.jsp" />
+        <jsp:include page="../../footer.jsp" />
     </div>
 </body>
 </html>

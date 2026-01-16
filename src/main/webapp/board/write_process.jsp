@@ -2,18 +2,15 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="DB.DBConnection" %>
 <%
-    // 로그인 체크
     Integer userId = (Integer) session.getAttribute("userId");
     if (userId == null) {
         response.sendRedirect(request.getContextPath() + "/member/login.jsp");
         return;
     }
     
-    // 관리자 권한 확인
     String userRole = (String) session.getAttribute("userRole");
     boolean isAdmin = "ADMIN".equals(userRole);
     
-    // 파라미터 받기
     String categoryIdStr = request.getParameter("category");
     String title = request.getParameter("title");
     String content = request.getParameter("content");
@@ -44,6 +41,22 @@
     
     try {
         conn = DBConnection.getConnection();
+        
+        // 일반 사용자가 공지사항 카테고리에 글을 작성하려고 하는지 확인
+        if (!isAdmin) {
+            String checkCategorySql = "SELECT name FROM board_category WHERE id = ?";
+            PreparedStatement checkPstmt = conn.prepareStatement(checkCategorySql);
+            checkPstmt.setInt(1, categoryId);
+            ResultSet checkRs = checkPstmt.executeQuery();
+            
+            if (checkRs.next() && "공지사항".equals(checkRs.getString("name"))) {
+                // 일반 사용자가 공지사항 카테고리에 글을 작성하려고 하면 차단
+                response.sendRedirect("write.jsp?error=no_permission");
+                return;
+            }
+            checkRs.close();
+            checkPstmt.close();
+        }
         
         String sql = "INSERT INTO board (category_id, user_id, title, content, is_notice, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
         pstmt = conn.prepareStatement(sql);

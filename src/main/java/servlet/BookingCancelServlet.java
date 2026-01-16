@@ -115,6 +115,6 @@ public class BookingCancelServlet extends HttpServlet {
     }
     
     // 예매 내역 페이지로 리다이렉트
-    response.sendRedirect("my-bookings.jsp");
+    response.sendRedirect("member/my-bookings.jsp");
 }
 }

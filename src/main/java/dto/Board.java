@@ -20,11 +20,9 @@ public class Board {
     private String categoryName;
     private int commentCount;
     
-    // 기본 생성자
     public Board() {
     }
     
-    // Getter와 Setter 메서드
     public int getId() {
         return id;
     }

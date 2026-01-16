@@ -2,7 +2,6 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="java.util.*" %>
 <%@ page import="DB.DBConnection" %>
-<%@ page import="dto.Movie" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -288,11 +287,64 @@
         <jsp:include page="footer.jsp" />
     </div>
     
+    <!-- 경고 알림 스크립트 -->
+    <%
+        Boolean showWarningAlert = (Boolean) session.getAttribute("showWarningAlert");
+        Integer warningCount = (Integer) session.getAttribute("warningCount");
+        Integer newWarningCount = (Integer) session.getAttribute("newWarningCount");
+        Integer userId = (Integer) session.getAttribute("userId");
+        
+        // 디버깅 로그
+        System.out.println("JSP Debug - showWarningAlert: " + showWarningAlert);
+        System.out.println("JSP Debug - warningCount: " + warningCount);
+        System.out.println("JSP Debug - newWarningCount: " + newWarningCount);
+        System.out.println("JSP Debug - userId: " + userId);
+        
+        if (showWarningAlert != null && showWarningAlert && warningCount != null && userId != null) {
+            // 세션에서 알림 플래그 제거
+            session.removeAttribute("showWarningAlert");
+    %>
+    <script>
+        console.log('Warning alert script loaded');
+        console.log('Warning count: <%= warningCount %>');
+        console.log('New warning count: <%= newWarningCount != null ? newWarningCount : 1 %>');
+        console.log('User ID: <%= userId %>');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, showing warning alert');
+            
+            var warningCount = <%= warningCount %>;
+            var newWarningCount = <%= newWarningCount != null ? newWarningCount : 1 %>;
+            var userId = <%= userId %>;
+            
+            var message = "⚠️ 경고 알림\n\n";
+            if (newWarningCount > 1) {
+                message += "새로운 경고 " + newWarningCount + "개가 있습니다.\n";
+            } else {
+                message += "새로운 경고가 있습니다.\n";
+            }
+            message += "현재 총 경고 횟수: " + warningCount + "회\n\n";
+            message += "커뮤니티 규칙을 준수해 주세요.";
+            
+            if (confirm(message + "\n\n확인을 누르면 이 알림을 다시 보지 않습니다.")) {
+                // 쿠키에 현재 경고 횟수 저장 (알림 확인 처리)
+                var cookieName = "warningChecked_" + userId;
+                var cookieValue = warningCount;
+                var expiryDate = new Date();
+                expiryDate.setFullYear(expiryDate.getFullYear() + 1); // 1년 후 만료
+                
+                document.cookie = cookieName + "=" + cookieValue + "; path=/; expires=" + expiryDate.toUTCString();
+                console.log('Cookie set: ' + cookieName + '=' + cookieValue);
+            }
+        });
+    </script>
+    <%
+        } else {
+            System.out.println("JSP Debug - No warning alert to show");
+        }
+    %>
+    
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     <script src="js/main.js"></script>
-
-#### 변경사항
-
-## 수정사항
 </body>
 </html>

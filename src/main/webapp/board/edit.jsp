@@ -77,9 +77,9 @@
                 rs.close();
                 pstmt.close();
 
-                // 관리자 여부 확인
-                String userRole = (String) session.getAttribute("userRole");
-                boolean isAdmin = "ADMIN".equals(userRole);
+                // 관리자 여부 확인 (기존 방식 사용)
+                Boolean isAdminObj = (Boolean) session.getAttribute("isAdmin");
+                boolean isAdmin = isAdminObj != null && isAdminObj.booleanValue();
                 
                 // 카테고리 목록 가져오기
                 String categorySql = "SELECT * FROM board_category ORDER BY id";

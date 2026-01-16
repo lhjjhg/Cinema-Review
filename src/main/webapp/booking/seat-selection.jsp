@@ -8,16 +8,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CinemaWorld - 좌석 선택</title>
-    <link rel="stylesheet" href="css/Style.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/booking.css">
-    <link rel="stylesheet" href="css/seat-selection.css">
+    <link rel="stylesheet" href="../css/Style.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/booking.css">
+    <link rel="stylesheet" href="../css/seat-selection.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body class="main-page">
     <div class="site-wrapper">
         <!-- 헤더 포함 -->
-        <jsp:include page="header.jsp" />
+        <jsp:include page="../header.jsp" />
         
         <main class="main-content">
             <section class="seat-selection-section">
@@ -311,7 +311,7 @@
                 </div>
                 
                 <!-- 예매 정보를 서버로 전송하기 위한 폼 -->
-                <form id="booking-form" action="BookingServlet" method="post" style="display: none;">
+                <form id="booking-form" action="../BookingServlet" method="post" style="display: none;">
                     <input type="hidden" name="screeningId" value="<%= screeningId %>">
                     <input type="hidden" name="movieId" value="<%= movieId != null ? movieId : "" %>">
                     <input type="hidden" name="movieTitle" value="<%= movieTitle %>">
@@ -326,7 +326,7 @@
         </main>
         
         <!-- 푸터 포함 -->
-        <jsp:include page="footer.jsp" />
+        <jsp:include page="../footer.jsp" />
     </div>
     
     <script>
@@ -446,9 +446,26 @@
                 return;
             }
             
-            // 폼 제출
-            selectedSeatsInput.value = selectedSeats.join(',');
-            bookingForm.submit();
+            // 로그인 상태 확인
+            fetch('../CheckLoginServlet')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.loggedIn) {
+                        alert('로그인이 필요합니다.');
+                        window.location.href = '../member/login.jsp?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                        return;
+                    }
+                    
+                    // 폼 제출
+                    selectedSeatsInput.value = selectedSeats.join(',');
+                    bookingForm.submit();
+                })
+                .catch(error => {
+                    console.error('로그인 상태 확인 중 오류:', error);
+                    // 오류 발생 시에도 폼 제출 시도
+                    selectedSeatsInput.value = selectedSeats.join(',');
+                    bookingForm.submit();
+                });
         });
         
         // 요약 정보 업데이트

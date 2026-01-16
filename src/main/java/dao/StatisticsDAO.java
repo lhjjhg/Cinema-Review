@@ -315,7 +315,6 @@ public class StatisticsDAO {
             // 날짜순으로 정렬
             activities.sort((a, b) -> ((java.sql.Timestamp)b.get("createdAt")).compareTo((java.sql.Timestamp)a.get("createdAt")));
             
-            // 최대 10개만 반환
             if (activities.size() > 10) {
                 activities = activities.subList(0, 10);
             }

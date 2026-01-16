@@ -11,15 +11,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CinemaWorld - 영화 예매</title>
-    <link rel="stylesheet" href="css/Style.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/booking.css">
+    <link rel="stylesheet" href="../css/Style.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/booking.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+    </style>
 </head>
 <body class="main-page">
     <div class="site-wrapper">
         <!-- 헤더 포함 -->
-        <jsp:include page="header.jsp" />
+        <jsp:include page="../header.jsp" />
+        
         
         <main class="main-content">
             <section class="booking-section">
@@ -149,7 +152,7 @@
                                 
                                 <!-- 광주/전라 -->
                                 <li class="theater-item" data-theater-id="29" data-region="광주/전라">CGV 광주 터미널</li>
-                                <li class="theater-item" data-theater-id="30" data-region="��주/전라">CGV 전주</li>
+                                <li class="theater-item" data-theater-id="30" data-region="광주/전라">CGV 전주</li>
                                 <li class="theater-item" data-theater-id="31" data-region="광주/전라">CGV 목포</li>
                                 
                                 <!-- 제주 -->
@@ -164,19 +167,27 @@
                             <h2>날짜</h2>
                         </div>
                         <div class="column-content">
-                            <ul class="date-list">
+                            <div class="date-year-month">
+                                <%
+                                    Calendar currentCal = Calendar.getInstance();
+                                    SimpleDateFormat yearMonthFormat = new SimpleDateFormat("yyyy년 MM월");
+                                    String currentYearMonth = yearMonthFormat.format(currentCal.getTime());
+                                %>
+                                <div class="year-month-display"><%= currentYearMonth %></div>
+                            </div>
+                            <ul class="date-list-vertical">
                                 <%
                                     // 오늘부터 14일간의 날짜 표시
                                     Calendar cal = Calendar.getInstance();
                                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
                                     SimpleDateFormat dayFormat = new SimpleDateFormat("E", Locale.KOREAN);
-                                    SimpleDateFormat monthDayFormat = new SimpleDateFormat("MM/dd");
+                                    SimpleDateFormat dayNumFormat = new SimpleDateFormat("dd");
                                     
                                     for (int i = 0; i < 14; i++) {
                                         Date date = cal.getTime();
                                         String formattedDate = dateFormat.format(date);
                                         String day = dayFormat.format(date);
-                                        String monthDay = monthDayFormat.format(date);
+                                        String dayNum = dayNumFormat.format(date);
                                         
                                         // 주말 여부에 따라 클래스 추가
                                         String dayClass = "";
@@ -186,9 +197,9 @@
                                             dayClass = "sunday";
                                         }
                                 %>
-                                <li class="date-item <%= i == 0 ? "selected" : "" %>" data-date="<%= formattedDate %>">
-                                    <div class="date-day <%= dayClass %>"><%= day %></div>
-                                    <div class="date-num"><%= monthDay %></div>
+                                <li class="date-item-vertical <%= i == 0 ? "selected" : "" %>" data-date="<%= formattedDate %>">
+                                    <span class="day-name <%= dayClass %>"><%= day %></span>
+                                    <span class="day-number"><%= dayNum %></span>
                                 </li>
                                 <%
                                         cal.add(Calendar.DATE, 1);
@@ -220,9 +231,9 @@
         </main>
         
         <!-- 푸터 포함 -->
-        <jsp:include page="footer.jsp" />
+        <jsp:include page="../footer.jsp" />
     </div>
     
-    <script src="js/booking.js"></script>
+    <script src="../js/booking.js"></script>
 </body>
 </html>

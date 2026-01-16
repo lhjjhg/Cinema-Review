@@ -48,7 +48,7 @@ public class UserDAO {
         return user;
     }
     
-    // 사용자 등록
+    // 회원가입 
     public boolean register(User user) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -64,7 +64,7 @@ public class UserDAO {
             pstmt.setString(5, user.getAddress());
             pstmt.setString(6, user.getBirthdate());
             pstmt.setString(7, user.getProfileImage());
-            pstmt.setString(8, user.getRole() != null ? user.getRole() : "USER"); // role 필드 추가, 기본값은 USER
+            pstmt.setString(8, user.getRole() != null ? user.getRole() : "USER"); 
             
             int result = pstmt.executeUpdate();
             return result > 0;

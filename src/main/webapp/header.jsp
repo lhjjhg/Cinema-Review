@@ -35,7 +35,7 @@
             <ul class="nav-links">
                 <li><a href="<%= contextPath %>/index.jsp" class="nav-link <%= currentPath.endsWith("index.jsp") ? "active" : "" %>">홈</a></li>
                 <li><a href="<%= contextPath %>/movies.jsp" class="nav-link <%= currentPath.endsWith("movies.jsp") ? "active" : "" %>">영화</a></li>
-                <li><a href="<%= contextPath %>/booking.jsp" class="nav-link <%= currentPath.endsWith("booking.jsp") ? "active" : "" %>">예매</a></li>
+                 <li><a href="<%= contextPath %>/booking/booking.jsp" class="nav-link <%= currentPath.endsWith("booking.jsp") || currentPath.contains("/booking/") ? "active" : "" %>">예매</a></li>
                 <li><a href="<%= contextPath %>/board/list.jsp?category=1" class="nav-link <%= currentPath.contains("/board/") ? "active" : "" %>">게시판</a></li>
                 <% if (isLoggedIn) { %>
                     <% if (isAdmin) { %>

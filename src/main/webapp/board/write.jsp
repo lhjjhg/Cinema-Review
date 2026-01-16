@@ -24,6 +24,10 @@
                 return;
             }
             
+            // 관리자 여부 확인 (userRole이 'ADMIN'인지 확인)
+            String userRole = (String) session.getAttribute("userRole");
+            boolean isAdmin = "ADMIN".equals(userRole);
+            
             // 카테고리 파라미터
             int categoryId = 0;
             String categoryParam = request.getParameter("category");
@@ -42,8 +46,13 @@
             try {
                 conn = DBConnection.getConnection();
                 
-                // 카테고리 목록 가져오기
-                String categorySql = "SELECT * FROM board_category ORDER BY id";
+                String categorySql;
+                if (isAdmin) {
+                    categorySql = "SELECT * FROM board_category ORDER BY id";
+                } else {
+                    categorySql = "SELECT * FROM board_category WHERE name != '공지사항' ORDER BY id";
+                }
+                
                 pstmt = conn.prepareStatement(categorySql);
                 rs = pstmt.executeQuery();
                 
@@ -60,12 +69,33 @@
                     }
                 }
                 
-                // 관리자 여부 확인 (userRole이 'ADMIN'인지 확인)
-                String userRole = (String) session.getAttribute("userRole");
-                boolean isAdmin = "ADMIN".equals(userRole);
+                // 일반 사용자가 공지사항 카테고리로 접근하려고 하는 경우 차단
+                if (!isAdmin && categoryId > 0) {
+                    // 선택된 카테고리가 공지사항인지 확인
+                    String checkCategorySql = "SELECT name FROM board_category WHERE id = ?";
+                    PreparedStatement checkPstmt = conn.prepareStatement(checkCategorySql);
+                    checkPstmt.setInt(1, categoryId);
+                    ResultSet checkRs = checkPstmt.executeQuery();
+                    
+                    if (checkRs.next() && "공지사항".equals(checkRs.getString("name"))) {
+                        response.sendRedirect("write.jsp?category=1&error=no_permission");
+                        return;
+                    }
+                    checkRs.close();
+                    checkPstmt.close();
+                }
         %>
         
         <div class="board-form">
+            <% 
+                String error = request.getParameter("error");
+                if ("no_permission".equals(error)) {
+            %>
+                <div class="error-message" style="color: red; margin-bottom: 15px; padding: 10px; border: 1px solid red; border-radius: 5px; background-color: #ffe6e6;">
+                    ⚠️ 공지사항은 관리자만 작성할 수 있습니다.
+                </div>
+            <% } %>
+            
             <form action="write_process.jsp" method="post">
                 <div class="form-group">
                     <label for="category">카테고리</label>

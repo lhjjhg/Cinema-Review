@@ -9,9 +9,9 @@
         return;
     }
     
-    // 관리자 권한 확인
-    String userRole = (String) session.getAttribute("userRole");
-    boolean isAdmin = "ADMIN".equals(userRole);
+    // 관리자 권한 확인 (기존 방식 사용)
+    Boolean isAdminObj = (Boolean) session.getAttribute("isAdmin");
+    boolean isAdmin = isAdminObj != null && isAdminObj.booleanValue();
     
     // 파라미터 받기
     String idStr = request.getParameter("id");

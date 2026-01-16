@@ -582,7 +582,7 @@
                             <div class="section-header">
                                 <h3>최근 예매 내역</h3>
                                 <div class="section-actions">
-                                    <a href="<%= request.getContextPath() %>/my-bookings.jsp" class="action-link">
+                                    <a href="<%= request.getContextPath() %>/member/my-bookings.jsp" class="action-link">
                                         전체보기 <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </div>
@@ -656,7 +656,7 @@
                                         <p><strong>인원:</strong> 일반 <%= adultCount %>명, 청소년 <%= youthCount %>명</p>
                                     </div>
                                     <div class="booking-actions">
-                                        <a href="<%= request.getContextPath() %>/booking-detail.jsp?id=<%= bookingId %>" class="booking-link">상세보기</a>
+                                        <a href="<%= request.getContextPath() %>/booking/booking-detail.jsp?id=<%= bookingId %>" class="booking-link">상세보기</a>
                                     </div>
                                 </div>
                             </div>
@@ -695,7 +695,7 @@
                             <div class="section-header">
                                 <h3>내가 작성한 리뷰</h3>
                                 <div class="section-actions">
-                                    <a href="<%= request.getContextPath() %>/my-reviews.jsp" class="action-link">
+                                    <a href="<%= request.getContextPath() %>/member/my-reviews.jsp" class="action-link">
                                         전체보기 <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </div>

@@ -1,6 +1,7 @@
 package servlet;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +16,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import org.json.simple.JSONObject;
+
 import DB.DBConnection;
 
 @WebServlet("/BookingServlet")
@@ -24,14 +27,16 @@ public class BookingServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
-        request.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
         
         HttpSession session = request.getSession();
         Integer userId = (Integer) session.getAttribute("userId");
         
         // 로그인 상태가 아니면 로그인 페이지로 리다이렉트
         if (userId == null) {
-            response.sendRedirect("member/login.jsp?redirect=booking.jsp");
+            response.sendRedirect("member/login.jsp?redirect=booking/seat-selection.jsp");
             return;
         }
         
@@ -101,34 +106,12 @@ public class BookingServlet extends HttpServlet {
             }
             pstmt.executeBatch();
             
-            // 상영 정보의 available_seats 업데이트
-            if (screeningId != null && !screeningId.isEmpty()) {
-                // 먼저 현재 available_seats 값을 조회
-                String getAvailableSeatsSql = "SELECT available_seats FROM screening WHERE id = ?";
-                pstmt = conn.prepareStatement(getAvailableSeatsSql);
-                pstmt.setString(1, screeningId);
-                rs = pstmt.executeQuery();
-                
-                int availableSeats = 0;
-                if (rs.next()) {
-                    availableSeats = rs.getInt("available_seats");
-                }
-                
-                // available_seats 업데이트
-                int totalSeats = adultCount + youthCount;
-                int newAvailableSeats = Math.max(0, availableSeats - totalSeats);
-                
-                String updateScreeningSql = "UPDATE screening SET available_seats = ? WHERE id = ?";
-                pstmt = conn.prepareStatement(updateScreeningSql);
-                pstmt.setInt(1, newAvailableSeats);
-                pstmt.setString(2, screeningId);
-                pstmt.executeUpdate();
-            }
+            // 기존의 screening 테이블 업데이트 코드 제거
             
             conn.commit(); // 트랜잭션 커밋
             
             // 예매 완료 페이지로 리다이렉트
-            response.sendRedirect("booking-complete.jsp?bookingId=" + bookingId + "&bookingCode=" + bookingCode);
+            response.sendRedirect("booking/booking-complete.jsp?bookingId=" + bookingId + "&bookingCode=" + bookingCode);
             
         } catch (SQLException e) {
             try {
@@ -140,8 +123,10 @@ public class BookingServlet extends HttpServlet {
             }
             
             e.printStackTrace();
-            request.setAttribute("errorMessage", "예매 처리 중 오류가 발생했습니다: " + e.getMessage());
-            request.getRequestDispatcher("error.jsp").forward(request, response);
+            JSONObject resultObj = new JSONObject();
+            resultObj.put("success", false);
+            resultObj.put("message", "예매 처리 중 오류가 발생했습니다: " + e.getMessage());
+            out.print(resultObj.toJSONString());
         } finally {
             try {
                 if (rs != null) rs.close();

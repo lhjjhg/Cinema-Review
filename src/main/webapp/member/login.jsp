@@ -30,7 +30,6 @@
     <div class="container">
         <div class="login-container">
             <div class="login-image">
-                <!-- 영화 포스터 이미지 -->
                 <img src="../image/movie.jpg" alt="영화 포스터">
                 <div class="poster-overlay"></div>
             </div>
@@ -48,11 +47,26 @@
                     </div>
                 <% } %>
                 
-                <% if (request.getAttribute("errorMessage") != null) { %>
-                    <div class="error-message">
-                        <%= request.getAttribute("errorMessage") %>
-                    </div>
-                <% } %>
+                <% 
+				String errorParam = request.getParameter("error");
+				String errorMessage = null;
+
+				if ("login_failed".equals(errorParam)) {
+    				errorMessage = "아이디 또는 비밀번호가 일치하지 않습니다.";
+				} else if ("db_error".equals(errorParam)) {
+    				errorMessage = "데이터베이스 연결 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+				}
+
+				if (request.getAttribute("errorMessage") != null) {
+    				errorMessage = (String) request.getAttribute("errorMessage");
+				}
+				%>
+
+				<% if (errorMessage != null) { %>
+    			<div class="error-message">
+        		<%= errorMessage %>
+    			</div>
+				<% } %>
                 
                 <form action="../LoginServlet" method="post">
                     <div class="input-group">
@@ -61,10 +75,7 @@
                     </div>
                     <div class="input-group">
                         <label for="password">비밀번호</label>
-                        <input type="password" id="password" name="password" required>
-                        <div class="forgot-password">
-                            <a href="forgotPassword.jsp">비밀번호를 잊으셨나요?</a>
-                        </div>
+                        <input type="password" id="password" name="password" required>	
                     </div>
                     <div class="remember-me">
                         <input type="checkbox" id="remember" name="remember">

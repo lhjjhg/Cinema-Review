@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ include file="admin-check.jsp" %>
+<%@ include file="../admin-check.jsp" %>
 <%@ page import="java.sql.*" %>
 <%@ page import="DB.DBConnection" %>
 <!DOCTYPE html>
@@ -8,8 +8,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CinemaWorld - 게시판 관리</title>
-    <link rel="stylesheet" href="../css/Style.css">
-    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../../css/Style.css">
+    <link rel="stylesheet" href="../../css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         .admin-container {
@@ -123,6 +123,27 @@
             display: block;
         }
         
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .table-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: #333;
+            border-radius: 10px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background-color: #e50914;
+            border-radius: 10px;
+        }
+
         .board-table {
             width: 100%;
             border-collapse: collapse;
@@ -131,13 +152,31 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             overflow: hidden;
             border-radius: 8px;
+            table-layout: fixed; /* 테이블 레이아웃 고정 */
         }
         
         .board-table th, .board-table td {
-            padding: 15px;
+            padding: 12px 8px;
             text-align: left;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+            vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+        
+        .board-table th:nth-child(1), .board-table td:nth-child(1) { width: 8%; } /* ID */
+        .board-table th:nth-child(2), .board-table td:nth-child(2) { width: 12%; } /* 카테고리 */
+        .board-table th:nth-child(3), .board-table td:nth-child(3) { 
+            width: 35%; 
+            white-space: normal;
+            word-break: break-word;
+            max-width: 0;
+        } /* 제목 */
+        .board-table th:nth-child(4), .board-table td:nth-child(4) { width: 15%; } /* 작성자 */
+        .board-table th:nth-child(5), .board-table td:nth-child(5) { width: 8%; text-align: center; } /* 조회수 */
+        .board-table th:nth-child(6), .board-table td:nth-child(6) { width: 12%; } /* 작성일 */
+        .board-table th:nth-child(7), .board-table td:nth-child(7) { width: 10%; text-align: center; } /* 작업 */
         
         .board-table th {
             background-color: rgba(229, 9, 20, 0.8);
@@ -146,6 +185,11 @@
             text-transform: uppercase;
             font-size: 14px;
             letter-spacing: 1px;
+            min-width: 80px;
+        }
+
+        .board-table td {
+            min-height: 50px;
         }
         
         .board-table tr:hover {
@@ -171,6 +215,9 @@
         .action-buttons {
             display: flex;
             gap: 10px;
+            justify-content: center;
+            align-items: center;
+            min-width: 80px;
         }
         
         .action-btn {
@@ -181,6 +228,9 @@
             font-weight: 500;
             transition: all 0.3s;
             font-size: 13px;
+            white-space: nowrap;
+            min-width: 60px;
+            text-align: center;
         }
         
         .edit-btn {
@@ -428,6 +478,10 @@
         }
         
         @media (max-width: 768px) {
+            .board-table {
+                font-size: 12px;
+            }
+            
             .board-table th:nth-child(5),
             .board-table td:nth-child(5),
             .board-table th:nth-child(6),
@@ -450,11 +504,13 @@
             .action-buttons {
                 flex-direction: column;
                 gap: 5px;
+                min-width: 60px;
             }
             
             .action-btn {
                 width: 100%;
                 text-align: center;
+                min-width: 50px;
             }
         }
     </style>
@@ -462,14 +518,52 @@
 <body class="main-page">
     <div class="site-wrapper">
         <!-- 헤더 포함 -->
-        <jsp:include page="../header.jsp" />
+        <jsp:include page="../../header.jsp" />
         
         <main class="main-content">
-            <div class="admin-container">
-                <div class="admin-title">
-                    <h1>게시판 관리</h1>
-                    <p>게시판의 게시글, 댓글 및 카테고리를 관리합니다</p>
-                </div>
+            <%
+String successMsg = request.getParameter("success");
+String errorMsg = request.getParameter("error");
+%>
+
+<div class="admin-container">
+    <div class="admin-title">
+        <h1>게시판 관리</h1>
+        <p>게시판의 게시글, 댓글 및 카테고리를 관리합니다</p>
+        
+        <!-- 성공/오류 메시지 표시 -->
+        <% if (successMsg != null) { %>
+            <div class="alert alert-success" style="background-color: #4CAF50; color: white; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                <% if ("post_deleted".equals(successMsg)) { %>
+                    게시글이 성공적으로 삭제되었습니다.
+                <% } else if ("comment_deleted".equals(successMsg)) { %>
+                    댓글이 성공적으로 삭제되었습니다.
+                <% } else if ("category_deleted".equals(successMsg)) { %>
+                    카테고리가 성공적으로 삭제되었습니다.
+                <% } %>
+            </div>
+        <% } %>
+        
+        <% if (errorMsg != null) { %>
+            <div class="alert alert-error" style="background-color: #e50914; color: white; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                <% if ("invalid_id".equals(errorMsg)) { %>
+                    잘못된 ID입니다.
+                <% } else if ("post_not_found".equals(errorMsg)) { %>
+                    게시글을 찾을 수 없습니다.
+                <% } else if ("comment_not_found".equals(errorMsg)) { %>
+                    댓글을 찾을 수 없습니다.
+                <% } else if ("category_not_found".equals(errorMsg)) { %>
+                    카테고리를 찾을 수 없습니다.
+                <% } else if ("category_has_posts".equals(errorMsg)) { %>
+                    이 카테고리에는 게시글이 있어 삭제할 수 없습니다.
+                <% } else if ("database_error".equals(errorMsg)) { %>
+                    데이터베이스 오류가 발생했습니다.
+                <% } else { %>
+                    예상치 못한 오류가 발생했습니다.
+                <% } %>
+            </div>
+        <% } %>
+    </div>
                 
                 <div class="tabs">
                     <div class="tab active" onclick="openTab('posts')"><i class="fas fa-clipboard-list"></i> 게시글 관리</div>
@@ -517,78 +611,80 @@
                         </div>
                     </div>
                     
-                    <table class="board-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>카테고리</th>
-                                <th>제목</th>
-                                <th>작성자</th>
-                                <th>조회수</th>
-                                <th>작성일</th>
-                                <th>작업</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <%
-                            conn = null;
-                            pstmt = null;
-                            rs = null;
-                            boolean hasPostData = false;
-                            
-                            try {
-                                conn = DBConnection.getConnection();
-                                String sql = "SELECT b.*, bc.name as category_name, u.username, u.nickname FROM board b " +
-                                             "JOIN board_category bc ON b.category_id = bc.id " +
-                                             "JOIN user u ON b.user_id = u.id " +
-                                             "ORDER BY b.created_at DESC";
-                                pstmt = conn.prepareStatement(sql);
-                                rs = pstmt.executeQuery();
+                    <div class="table-wrapper">
+                        <table class="board-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>카테고리</th>
+                                    <th>제목</th>
+                                    <th>작성자</th>
+                                    <th>조회수</th>
+                                    <th>작성일</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <%
+                                conn = null;
+                                pstmt = null;
+                                rs = null;
+                                boolean hasPostData = false;
                                 
-                                while(rs.next()) {
-                                    hasPostData = true;
-                                    int id = rs.getInt("id");
-                                    int categoryId = rs.getInt("category_id");
-                                    String categoryName = rs.getString("category_name");
-                                    String title = rs.getString("title");
-                                    String username = rs.getString("username");
-                                    String nickname = rs.getString("nickname");
-                                    int views = rs.getInt("views");
-                                    Timestamp createdAt = rs.getTimestamp("created_at");
-                            %>
-                            <tr data-category="<%= categoryId %>">
-                                <td><%= id %></td>
-                                <td><%= categoryName %></td>
-                                <td><a href="../board/view.jsp?id=<%= id %>" target="_blank"><%= title %></a></td>
-                                <td><%= nickname %> (<%= username %>)</td>
-                                <td><%= views %></td>
-                                <td><%= createdAt %></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="action-btn delete-btn" onclick="confirmDeletePost(<%= id %>)"><i class="fas fa-trash-alt"></i> 삭제</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <%
+                                try {
+                                    conn = DBConnection.getConnection();
+                                    String sql = "SELECT b.*, bc.name as category_name, u.username, u.nickname FROM board b " +
+                                                 "JOIN board_category bc ON b.category_id = bc.id " +
+                                                 "JOIN user u ON b.user_id = u.id " +
+                                                 "ORDER BY b.created_at DESC";
+                                    pstmt = conn.prepareStatement(sql);
+                                    rs = pstmt.executeQuery();
+                                    
+                                    while(rs.next()) {
+                                        hasPostData = true;
+                                        int id = rs.getInt("id");
+                                        int categoryId = rs.getInt("category_id");
+                                        String categoryName = rs.getString("category_name");
+                                        String title = rs.getString("title");
+                                        String username = rs.getString("username");
+                                        String nickname = rs.getString("nickname");
+                                        int views = rs.getInt("views");
+                                        Timestamp createdAt = rs.getTimestamp("created_at");
+                                %>
+                                <tr data-category="<%= categoryId %>">
+                                    <td><%= id %></td>
+                                    <td><%= categoryName %></td>
+                                    <td><a href="../../board/view.jsp?id=<%= id %>" target="_blank"><%= title %></a></td>
+                                    <td><%= nickname %> (<%= username %>)</td>
+                                    <td><%= views %></td>
+                                    <td><%= createdAt %></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="action-btn delete-btn" onclick="confirmDeletePost(<%= id %>)"><i class="fas fa-trash-alt"></i> 삭제</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <%
+                                    }
+                                } catch(Exception e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    if(rs != null) try { rs.close(); } catch(Exception e) {}
+                                    if(pstmt != null) try { pstmt.close(); } catch(Exception e) {}
+                                    if(conn != null) try { conn.close(); } catch(Exception e) {}
                                 }
-                            } catch(Exception e) {
-                                e.printStackTrace();
-                            } finally {
-                                if(rs != null) try { rs.close(); } catch(Exception e) {}
-                                if(pstmt != null) try { pstmt.close(); } catch(Exception e) {}
-                                if(conn != null) try { conn.close(); } catch(Exception e) {}
-                            }
-                            
-                            if (!hasPostData) {
-                            %>
-                            <tr>
-                                <td colspan="7" class="no-data">등록된 게시글이 없습니다.</td>
-                            </tr>
-                            <%
-                            }
-                            %>
-                        </tbody>
-                    </table>
+                                
+                                if (!hasPostData) {
+                                %>
+                                <tr>
+                                    <td colspan="7" class="no-data">등록된 게시글이 없습니다.</td>
+                                </tr>
+                                <%
+                                }
+                                %>
+                            </tbody>
+                        </table>
+                    </div>
                     
                     <div class="pagination">
                         <a href="#" class="active">1</a>
@@ -608,76 +704,78 @@
                         </div>
                     </div>
                     
-                    <table class="board-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>게시글</th>
-                                <th>내용</th>
-                                <th>작성자</th>
-                                <th>작성일</th>
-                                <th>작업</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <%
-                            conn = null;
-                            pstmt = null;
-                            rs = null;
-                            boolean hasCommentData = false;
-                            
-                            try {
-                                conn = DBConnection.getConnection();
-                                String sql = "SELECT bc.*, b.title as post_title, u.username, u.nickname FROM board_comment bc " +
-                                             "JOIN board b ON bc.board_id = b.id " +
-                                             "JOIN user u ON bc.user_id = u.id " +
-                                             "ORDER BY bc.created_at DESC";
-                                pstmt = conn.prepareStatement(sql);
-                                rs = pstmt.executeQuery();
+                    <div class="table-wrapper">
+                        <table class="board-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>게시글</th>
+                                    <th>내용</th>
+                                    <th>작성자</th>
+                                    <th>작성일</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <%
+                                conn = null;
+                                pstmt = null;
+                                rs = null;
+                                boolean hasCommentData = false;
                                 
-                                while(rs.next()) {
-                                    hasCommentData = true;
-                                    int id = rs.getInt("id");
-                                    int boardId = rs.getInt("board_id");
-                                    String postTitle = rs.getString("post_title");
-                                    String content = rs.getString("content");
-                                    if(content.length() > 50) content = content.substring(0, 50) + "...";
-                                    String username = rs.getString("username");
-                                    String nickname = rs.getString("nickname");
-                                    Timestamp createdAt = rs.getTimestamp("created_at");
-                            %>
-                            <tr>
-                                <td><%= id %></td>
-                                <td><a href="../board/view.jsp?id=<%= boardId %>" target="_blank"><%= postTitle %></a></td>
-                                <td><%= content %></td>
-                                <td><%= nickname %> (<%= username %>)</td>
-                                <td><%= createdAt %></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="action-btn delete-btn" onclick="confirmDeleteComment(<%= id %>)"><i class="fas fa-trash-alt"></i> 삭제</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <%
+                                try {
+                                    conn = DBConnection.getConnection();
+                                    String sql = "SELECT bc.*, b.title as post_title, u.username, u.nickname FROM board_comment bc " +
+                                                 "JOIN board b ON bc.board_id = b.id " +
+                                                 "JOIN user u ON bc.user_id = u.id " +
+                                                 "ORDER BY bc.created_at DESC";
+                                    pstmt = conn.prepareStatement(sql);
+                                    rs = pstmt.executeQuery();
+                                    
+                                    while(rs.next()) {
+                                        hasCommentData = true;
+                                        int id = rs.getInt("id");
+                                        int boardId = rs.getInt("board_id");
+                                        String postTitle = rs.getString("post_title");
+                                        String content = rs.getString("content");
+                                        if(content.length() > 50) content = content.substring(0, 50) + "...";
+                                        String username = rs.getString("username");
+                                        String nickname = rs.getString("nickname");
+                                        Timestamp createdAt = rs.getTimestamp("created_at");
+                                %>
+                                <tr>
+                                    <td><%= id %></td>
+                                    <td><a href="../../board/view.jsp?id=<%= boardId %>" target="_blank"><%= postTitle %></a></td>
+                                    <td><%= content %></td>
+                                    <td><%= nickname %> (<%= username %>)</td>
+                                    <td><%= createdAt %></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="action-btn delete-btn" onclick="confirmDeleteComment(<%= id %>)"><i class="fas fa-trash-alt"></i> 삭제</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <%
+                                    }
+                                } catch(Exception e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    if(rs != null) try { rs.close(); } catch(Exception e) {}
+                                    if(pstmt != null) try { pstmt.close(); } catch(Exception e) {}
+                                    if(conn != null) try { conn.close(); } catch(Exception e) {}
                                 }
-                            } catch(Exception e) {
-                                e.printStackTrace();
-                            } finally {
-                                if(rs != null) try { rs.close(); } catch(Exception e) {}
-                                if(pstmt != null) try { pstmt.close(); } catch(Exception e) {}
-                                if(conn != null) try { conn.close(); } catch(Exception e) {}
-                            }
-                            
-                            if (!hasCommentData) {
-                            %>
-                            <tr>
-                                <td colspan="6" class="no-data">등록된 댓글이 없습니다.</td>
-                            </tr>
-                            <%
-                            }
-                            %>
-                        </tbody>
-                    </table>
+                                
+                                if (!hasCommentData) {
+                                %>
+                                <tr>
+                                    <td colspan="6" class="no-data">등록된 댓글이 없습니다.</td>
+                                </tr>
+                                <%
+                                }
+                                %>
+                            </tbody>
+                        </table>
+                    </div>
                     
                     <div class="pagination">
                         <a href="#" class="active">1</a>
@@ -709,79 +807,81 @@
                         </form>
                     </div>
                     
-                    <table class="board-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>카테고리 이름</th>
-                                <th>설명</th>
-                                <th>게시글 수</th>
-                                <th>작업</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <%
-                            conn = null;
-                            pstmt = null;
-                            rs = null;
-                            boolean hasCategoryData = false;
-                            
-                            try {
-                                conn = DBConnection.getConnection();
-                                String sql = "SELECT bc.*, COUNT(b.id) as post_count FROM board_category bc " +
-                                             "LEFT JOIN board b ON bc.id = b.category_id " +
-                                             "GROUP BY bc.id " +
-                                             "ORDER BY bc.id";
-                                pstmt = conn.prepareStatement(sql);
-                                rs = pstmt.executeQuery();
+                    <div class="table-wrapper">
+                        <table class="board-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>카테고리 이름</th>
+                                    <th>설명</th>
+                                    <th>게시글 수</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <%
+                                conn = null;
+                                pstmt = null;
+                                rs = null;
+                                boolean hasCategoryData = false;
                                 
-                                while(rs.next()) {
-                                    hasCategoryData = true;
-                                    int id = rs.getInt("id");
-                                    String name = rs.getString("name");
-                                    String description = rs.getString("description") != null ? rs.getString("description") : "";
-                                    int postCount = rs.getInt("post_count");
-                            %>
-                            <tr>
-                                <td><%= id %></td>
-                                <td><%= name %></td>
-                                <td><%= description %></td>
-                                <td><%= postCount %></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="action-btn edit-btn" onclick="editCategory(<%= id %>, '<%= name %>', '<%= description %>')"><i class="fas fa-edit"></i> 수정</button>
-                                        <button class="action-btn delete-btn" onclick="confirmDeleteCategory(<%= id %>, <%= postCount %>)"><i class="fas fa-trash-alt"></i> 삭제</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <%
+                                try {
+                                    conn = DBConnection.getConnection();
+                                    String sql = "SELECT bc.*, COUNT(b.id) as post_count FROM board_category bc " +
+                                                 "LEFT JOIN board b ON bc.id = b.category_id " +
+                                                 "GROUP BY bc.id " +
+                                                 "ORDER BY bc.id";
+                                    pstmt = conn.prepareStatement(sql);
+                                    rs = pstmt.executeQuery();
+                                    
+                                    while(rs.next()) {
+                                        hasCategoryData = true;
+                                        int id = rs.getInt("id");
+                                        String name = rs.getString("name");
+                                        String description = rs.getString("description") != null ? rs.getString("description") : "";
+                                        int postCount = rs.getInt("post_count");
+                                %>
+                                <tr>
+                                    <td><%= id %></td>
+                                    <td><%= name %></td>
+                                    <td><%= description %></td>
+                                    <td><%= postCount %></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit-btn" onclick="editCategory(<%= id %>, '<%= name %>', '<%= description %>')"><i class="fas fa-edit"></i> 수정</button>
+                                            <button class="action-btn delete-btn" onclick="confirmDeleteCategory(<%= id %>, <%= postCount %>)"><i class="fas fa-trash-alt"></i> 삭제</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <%
+                                    }
+                                } catch(Exception e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    if(rs != null) try { rs.close(); } catch(Exception e) {}
+                                    if(pstmt != null) try { pstmt.close(); } catch(Exception e) {}
+                                    if(conn != null) try { conn.close(); } catch(Exception e) {}
                                 }
-                            } catch(Exception e) {
-                                e.printStackTrace();
-                            } finally {
-                                if(rs != null) try { rs.close(); } catch(Exception e) {}
-                                if(pstmt != null) try { pstmt.close(); } catch(Exception e) {}
-                                if(conn != null) try { conn.close(); } catch(Exception e) {}
-                            }
-                            
-                            if (!hasCategoryData) {
-                            %>
-                            <tr>
-                                <td colspan="4" class="no-data">등록된 카테고리가 없습니다.</td>
-                            </tr>
-                            <%
-                            }
-                            %>
-                        </tbody>
-                    </table>
+                                
+                                if (!hasCategoryData) {
+                                %>
+                                <tr>
+                                    <td colspan="4" class="no-data">등록된 카테고리가 없습니다.</td>
+                                </tr>
+                                <%
+                                }
+                                %>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 
-                <a href="index.jsp" class="back-link"><i class="fas fa-arrow-left"></i> 관리자 메인으로 돌아가기</a>
+                <a href="../index.jsp" class="back-link"><i class="fas fa-arrow-left"></i> 관리자 메인으로 돌아가기</a>
             </div>
         </main>
         
         <!-- 푸터 포함 -->
-        <jsp:include page="../footer.jsp" />
+        <jsp:include page="../../footer.jsp" />
     </div>
     
     <script>
@@ -799,7 +899,7 @@
             }
             
             document.getElementById(tabName).classList.add('active');
-            document.querySelector(`.tab[onclick="openTab('${tabName}')"]`).classList.add('active');
+            document.querySelector('.tab[onclick="openTab(\'' + tabName + '\')"]').classList.add('active');
         }
         
         // 게시글 검색 함수
@@ -874,7 +974,7 @@
             document.getElementById('categoryDescription').value = description || '';
             
             const form = document.querySelector('#categoryForm form');
-            form.action = `update_category.jsp?id=${id}`;
+            form.action = 'update_category.jsp?id=' + id;
             
             // 폼 제목 변경
             const formTitle = document.createElement('h3');
@@ -886,31 +986,72 @@
         
         // 게시글 삭제 확인
         function confirmDeletePost(id) {
-            if (confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
-                window.location.href = `delete_post.jsp?id=${id}`;
+            console.log('삭제할 게시글 ID:', id); // 디버깅용
+            if (confirm('정말로 이 게시글을 삭제하시겠습니까?\n관련된 모든 댓글도 함께 삭제됩니다.')) {
+                // 로딩 표시
+                const button = event.target.closest('button');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 삭제 중...';
+
+                // ID 검증
+                if (!id || isNaN(id) || id <= 0) {
+                    alert('유효하지 않은 게시글 ID입니다.');
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-trash-alt"></i> 삭제';
+                    return;
+                }
+
+                window.location.href = 'delete_post.jsp?id=' + encodeURIComponent(id);
             }
         }
-        
+
         // 댓글 삭제 확인
         function confirmDeleteComment(id) {
+            console.log('삭제할 댓글 ID:', id); // 디버깅용
             if (confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
-                window.location.href = `delete_comment.jsp?id=${id}`;
+                // 로딩 표시
+                const button = event.target.closest('button');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 삭제 중...';
+
+                // ID 검증
+                if (!id || isNaN(id) || id <= 0) {
+                    alert('유효하지 않은 댓글 ID입니다.');
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-trash-alt"></i> 삭제';
+                    return;
+                }
+
+                window.location.href = 'delete_comment.jsp?id=' + encodeURIComponent(id);
             }
         }
-        
+
         // 카테고리 삭제 확인
         function confirmDeleteCategory(id, postCount) {
+            console.log('삭제할 카테고리 ID:', id, '게시글 수:', postCount); // 디버깅용
+            
+            // ID 검증
+            if (!id || isNaN(id) || id <= 0) {
+                alert('유효하지 않은 카테고리 ID입니다.');
+                return;
+            }
+            
             if (postCount > 0) {
-                alert('이 카테고리에는 게시글이 있어 삭제할 수 없습니다. 먼저 게시글을 다른 카테고리로 이동하거나 삭제해주세요.');
+                alert('이 카테고리에는 ' + postCount + '개의 게시글이 있어 삭제할 수 없습니다.\n먼저 게시글을 다른 카테고리로 이동하거나 삭제해주세요.');
                 return;
             }
             
             if (confirm('정말로 이 카테고리를 삭제하시겠습니까?')) {
-                window.location.href = `delete_category.jsp?id=${id}`;
+                // 로딩 표시
+                const button = event.target.closest('button');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 삭제 중...';
+
+                window.location.href = 'delete_category.jsp?id=' + encodeURIComponent(id);
             }
         }
         
-        // 페이지 로드 시 ���행
+        // 페이지 로드 시 실행
         document.addEventListener('DOMContentLoaded', function() {
             // 페이지네이션 이벤트
             const paginationLinks = document.querySelectorAll('.pagination a');

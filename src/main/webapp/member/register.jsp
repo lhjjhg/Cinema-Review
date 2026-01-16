@@ -7,8 +7,45 @@
     <title>CinemaWorld - 회원가입</title>
     <link rel="stylesheet" href="../css/Style.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <!-- 다음 우편번호 API -->
-    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script> <!-- 다음 우편번호 API -->
+    <style>
+        .username-check {
+            display: flex;
+            gap: 10px;
+        }
+
+        .username-check input {
+            flex: 1;
+        }
+
+        .check-btn {
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .check-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .check-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .check-btn.success {
+            background-color: #28a745;
+        }
+
+        .check-btn.success:hover {
+            background-color: #1e7e34;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -27,10 +64,13 @@
                     </div>
                 <% } %>
                 
-                <form action="RegisterServlet" method="post" enctype="multipart/form-data" id="registerForm">
+                <form action="../RegisterServlet" method="post" enctype="multipart/form-data" id="registerForm">
                     <div class="input-group">
                         <label for="username">아이디 <span class="required">*</span></label>
-                        <input type="text" id="username" name="username" required>
+                        <div class="username-check">
+                            <input type="text" id="username" name="username" required>
+                            <button type="button" id="checkUsernameBtn" class="check-btn">중복확인</button>
+                        </div>
                         <span id="usernameError" class="error-message"></span>
                     </div>
                     
@@ -79,7 +119,7 @@
                         <label for="profileImage">프로필 이미지</label>
                         <input type="file" id="profileImage" name="profileImage" accept="image/*">
                         <div class="image-preview" id="imagePreview">
-                            <img src="image/default-profile.png" alt="프로필 이미지 미리보기" id="previewImg">
+                            <img src="../image/default-profile.png" alt="프로필 이미지 미리보기" id="previewImg">
                         </div>
                     </div>
                     
@@ -99,49 +139,32 @@
     </div>
     
     <script>
-    // 다음 우편번호 API 함수
+    // 다음 우편번호 함수
     function execDaumPostcode() {
         new daum.Postcode({
             oncomplete: function(data) {
-                // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
-
-                // 각 주소의 노출 규칙에 따라 주소를 조합한다.
-                // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
                 let addr = ''; // 주소 변수
 
-                // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
-                if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                if (data.userSelectedType === 'R') { // 도로명 주소 선택
                     addr = data.roadAddress;
-                } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                } else { // 지번 주소 선택
                     addr = data.jibunAddress;
                 }
-
-                // 우편번호와 주소 정보를 해당 필드에 넣는다.
                 document.getElementById('postcode').value = data.zonecode;
                 document.getElementById('address').value = addr;
-                
-                // 커서를 상세주소 필드로 이동한다.
                 document.getElementById('detailAddress').focus();
-                
-                // 전체 주소 업데이트
                 updateFullAddress();
             }
         }).open();
     }
-    
-    // 페이지 로드 후 실행
     document.addEventListener('DOMContentLoaded', function() {
         // 우편번호 찾기 버튼 이벤트 리스너
         document.getElementById('postcodeBtn').addEventListener('click', function() {
             execDaumPostcode();
         });
-        
-        // 상세주소 입력 시 전체 주소 업데이트
         document.getElementById('detailAddress').addEventListener('input', function() {
             updateFullAddress();
         });
-        
-        // 전체 주소 업데이트 함수
         function updateFullAddress() {
             const addressEl = document.getElementById('address');
             const detailAddressEl = document.getElementById('detailAddress');
@@ -157,6 +180,6 @@
     });
     </script>
     
-    <script src="js/register.js"></script>
+    <script src="../js/register.js"></script>
 </body>
 </html>

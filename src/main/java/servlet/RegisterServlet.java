@@ -11,7 +11,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -25,9 +24,9 @@ import DB.DBConnection;
 
 @WebServlet("/RegisterServlet")
 @MultipartConfig(
-    fileSizeThreshold = 1024 * 1024, // 1MB
-    maxFileSize = 1024 * 1024 * 10,  // 10MB
-    maxRequestSize = 1024 * 1024 * 50 // 50MB
+    fileSizeThreshold = 1024 * 1024, 
+    maxFileSize = 1024 * 1024 * 10,  
+    maxRequestSize = 1024 * 1024 * 50 
 )
 public class RegisterServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -41,8 +40,16 @@ public class RegisterServlet extends HttpServlet {
         String password = request.getParameter("password");
         String name = request.getParameter("name");
         String nickname = request.getParameter("nickname");
-        String fullAddress = request.getParameter("fullAddress");
+        
         String birthdate = request.getParameter("birthdate");
+        if (birthdate != null && birthdate.trim().isEmpty()) {
+            birthdate = null;
+        }
+
+        String fullAddress = request.getParameter("fullAddress");
+        if (fullAddress != null && fullAddress.trim().isEmpty()) {
+            fullAddress = null;
+        }
         
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -59,7 +66,7 @@ public class RegisterServlet extends HttpServlet {
             
             if (rs.next() && rs.getInt(1) > 0) {
                 request.setAttribute("errorMessage", "이미 사용 중인 아이디입니다.");
-                request.getRequestDispatcher("register.jsp").forward(request, response);
+                request.getRequestDispatcher("member/register.jsp").forward(request, response);
                 return;
             }
             
@@ -84,32 +91,57 @@ public class RegisterServlet extends HttpServlet {
                 imagePath = "image/" + fileName;
             }
             
-            // 회원 정보 저장
-            String insertSql = "INSERT INTO user (username, password, name, nickname, address, birthdate, profile_image) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            // role 컬럼 존재 여부 확인
+            boolean hasRoleColumn = checkRoleColumnExists(conn);
+            
+            String insertSql;
+            if (hasRoleColumn) {
+                insertSql = "INSERT INTO user (username, password, name, nickname, address, birthdate, profile_image, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            } else {
+                insertSql = "INSERT INTO user (username, password, name, nickname, address, birthdate, profile_image) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            }
+            
             pstmt = conn.prepareStatement(insertSql);
             pstmt.setString(1, username);
-            pstmt.setString(2, password); // 실제 구현에서는 비밀번호 해싱 필요
+            pstmt.setString(2, password); 
             pstmt.setString(3, name);
             pstmt.setString(4, nickname);
-            pstmt.setString(5, fullAddress);
-            pstmt.setString(6, birthdate);
+
+            // 주소 처리
+            if (fullAddress != null) {
+                pstmt.setString(5, fullAddress);
+            } else {
+                pstmt.setNull(5, java.sql.Types.VARCHAR);
+            }
+
+            // 생년월일 처리
+            if (birthdate != null) {
+                pstmt.setString(6, birthdate);
+            } else {
+                pstmt.setNull(6, java.sql.Types.DATE);
+            }
+
             pstmt.setString(7, imagePath);
+
+            if (hasRoleColumn) {
+                pstmt.setString(8, "USER"); 
+            }
             
             int result = pstmt.executeUpdate();
             
             if (result > 0) {
                 // 회원가입 성공
-                response.sendRedirect("login.jsp?registered=true");
+                response.sendRedirect("member/login.jsp?registered=true");
             } else {
                 // 회원가입 실패
                 request.setAttribute("errorMessage", "회원가입에 실패했습니다. 다시 시도해주세요.");
-                request.getRequestDispatcher("register.jsp").forward(request, response);
+                request.getRequestDispatcher("member/register.jsp").forward(request, response);
             }
             
         } catch (SQLException e) {
             e.printStackTrace();
             request.setAttribute("errorMessage", "데이터베이스 오류가 발생했습니다: " + e.getMessage());
-            request.getRequestDispatcher("register.jsp").forward(request, response);
+            request.getRequestDispatcher("member/register.jsp").forward(request, response);
         } finally {
             try {
                 if (rs != null) rs.close();
@@ -118,6 +150,19 @@ public class RegisterServlet extends HttpServlet {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+        }
+    }
+    
+    private boolean checkRoleColumnExists(Connection conn) {
+        try {
+            PreparedStatement pstmt = conn.prepareStatement("SHOW COLUMNS FROM user LIKE 'role'");
+            ResultSet rs = pstmt.executeQuery();
+            boolean exists = rs.next();
+            rs.close();
+            pstmt.close();
+            return exists;
+        } catch (SQLException e) {
+            return false;
         }
     }
     

@@ -16,11 +16,9 @@ public class BoardComment {
     private String username;
     private String nickname;
     
-    // 기본 생성자
     public BoardComment() {
     }
     
-    // Getter와 Setter 메서드
     public int getId() {
         return id;
     }

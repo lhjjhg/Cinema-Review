@@ -18,7 +18,6 @@ public class BoardCategory {
         this.createdAt = createdAt;
     }
 
-    // Getters and Setters
     public int getId() {
         return id;
     }

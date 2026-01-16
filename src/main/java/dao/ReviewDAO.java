@@ -12,7 +12,6 @@ import DB.DBConnection;
 
 public class ReviewDAO {
     
-    // 영화 ID로 리뷰 가져오기
     public List<Review> getReviewsByMovieId(String movieId) throws SQLException {
         List<Review> reviews = new ArrayList<>();
         Connection conn = null;
@@ -226,7 +225,6 @@ public class ReviewDAO {
         try {
             conn = DBConnection.getConnection();
             
-            // 먼저 영화 ID 가져오기
             String selectSql = "SELECT movie_id FROM review WHERE id = ?";
             pstmt = conn.prepareStatement(selectSql);
             pstmt.setInt(1, reviewId);

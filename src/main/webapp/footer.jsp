@@ -1,9 +1,4 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%
-    // 현재 경로에 따라 CSS 경로 설정
-    String footerCssPath = request.getRequestURI().contains("/admin/") ? "../css/main.css" : "css/main.css";
-%>
-<link rel="stylesheet" href="<%= footerCssPath %>">
 <footer class="site-footer">
     <div class="footer-container">
         <div class="footer-content">
@@ -11,10 +6,12 @@
                 <i class="fas fa-film"></i>
                 <span>CinemaWorld</span>
             </div>
-            <div class="footer-links">
-                <a href="<%= request.getRequestURI().contains("/admin/") ? "../terms.jsp" : "terms.jsp" %>">서비스 이용약관</a>
-                <a href="<%= request.getRequestURI().contains("/admin/") ? "../privacy.jsp" : "privacy.jsp" %>">개인정보 처리방침</a>
-                <a href="<%= request.getRequestURI().contains("/admin/") ? "../contact.jsp" : "contact.jsp" %>">고객센터</a>
+            <div class="footer-project-info">
+                <div class="project-title">JSP 예매 리뷰 서비스 프로젝트</div>
+                <div class="student-info">
+                    <div class="department-id">소프트웨어학과 2020E7339</div>
+                    <div class="student-name">정현구</div>
+                </div>
             </div>
             <div class="footer-copyright">
                 &copy; <%= new java.text.SimpleDateFormat("yyyy").format(new java.util.Date()) %> CinemaWorld v10. All rights reserved.
@@ -22,3 +19,42 @@
         </div>
     </div>
 </footer>
+
+<style>
+.footer-project-info {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.project-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #cccccc;
+    margin-bottom: 8px;
+}
+
+.student-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #cccccc;
+}
+
+.department-id {
+    padding: 2px 8px;
+}
+
+.student-name {
+    font-weight: 600;
+    color: #cccccc;
+    padding: 2px 8px;
+}
+
+@media (max-width: 768px) {
+    .student-info {
+        gap: 3px;
+    }
+}
+</style>

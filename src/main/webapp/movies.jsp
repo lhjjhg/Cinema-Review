@@ -62,7 +62,7 @@
                             <img src="<%= posterUrl %>" alt="<%= title %> 포스터" onerror="this.src='image/default-movie.jpg';">
                             <div class="movie-overlay">
                                 <a href="movie-detail.jsp?id=<%= movieId %>" class="detail-btn">상세보기</a>
-                                <a href="booking.jsp?id=<%= movieId %>" class="booking-btn">예매하기</a>
+                                <a href="booking/booking.jsp?id=<%= movieId %>" class="booking-btn">예매하기</a>
                             </div>
                         </div>
                         <div class="movie-info">

@@ -36,31 +36,69 @@ public class LoginServlet extends HttpServlet {
             String sql = "SELECT * FROM user WHERE username = ? AND password = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, username);
-            pstmt.setString(2, password); // 실제 구현에서는 비밀번호 해싱 필요
-            
+            pstmt.setString(2, password); 
             rs = pstmt.executeQuery();
             
             if (rs.next()) {
                 // 로그인 성공
                 HttpSession session = request.getSession();
+                int userId = rs.getInt("id");
                 session.setAttribute("username", username);
-                session.setAttribute("userId", rs.getInt("id"));
+                session.setAttribute("userId", userId);
                 session.setAttribute("nickname", rs.getString("nickname"));
-                session.setAttribute("userRole", rs.getString("role")); // role 정보 추가
+                session.setAttribute("userRole", rs.getString("role")); 
+                
+                // 경고 알림 확인 
+                int warningCount = rs.getInt("warning_count");
+                System.out.println("Debug - User ID: " + userId + ", Warning Count: " + warningCount);
+                
+                // 쿠키에서 마지막으로 확인한 경고 횟수 가져오기
+                Cookie[] cookies = request.getCookies();
+                int lastCheckedWarningCount = 0;
+                String cookieName = "warningChecked_" + userId;
+                
+                if (cookies != null) {
+                    for (Cookie cookie : cookies) {
+                        if (cookieName.equals(cookie.getName())) {
+                            try {
+                                lastCheckedWarningCount = Integer.parseInt(cookie.getValue());
+                                System.out.println("Debug - Found cookie: " + cookieName + " = " + lastCheckedWarningCount);
+                            } catch (NumberFormatException e) {
+                                lastCheckedWarningCount = 0;
+                                System.out.println("Debug - Cookie value parse error, setting to 0");
+                            }
+                            break;
+                        }
+                    }
+                } else {
+                    System.out.println("Debug - No cookies found");
+                }
+                
+                System.out.println("Debug - Last checked: " + lastCheckedWarningCount + ", Current: " + warningCount);
+                
+                // 새로운 경고가 있는 경우 알림 표시
+                if (warningCount > lastCheckedWarningCount) {
+                    session.setAttribute("showWarningAlert", true);
+                    session.setAttribute("warningCount", warningCount);
+                    session.setAttribute("newWarningCount", warningCount - lastCheckedWarningCount);
+                    System.out.println("Debug - Setting warning alert: true, New warnings: " + (warningCount - lastCheckedWarningCount));
+                } else {
+                    System.out.println("Debug - No new warnings to show");
+                }
                 
                 // 로그인 상태 유지 처리
                 if (remember != null) {
-                    session.setMaxInactiveInterval(30 * 24 * 60 * 60); // 30일
+                    session.setMaxInactiveInterval(30 * 24 * 60 * 60);
                     
                     // 아이디 저장을 위한 쿠키 생성
                     Cookie usernameCookie = new Cookie("savedUsername", username);
-                    usernameCookie.setMaxAge(30 * 24 * 60 * 60); // 30일
+                    usernameCookie.setMaxAge(30 * 24 * 60 * 60); 
                     usernameCookie.setPath("/");
                     response.addCookie(usernameCookie);
                 } else {
                     // 아이디 저장을 해제한 경우 기존 쿠키 삭제
                     Cookie usernameCookie = new Cookie("savedUsername", "");
-                    usernameCookie.setMaxAge(0); // 쿠키 삭제
+                    usernameCookie.setMaxAge(0); 
                     usernameCookie.setPath("/");
                     response.addCookie(usernameCookie);
                 }
@@ -68,16 +106,14 @@ public class LoginServlet extends HttpServlet {
                 // 메인 페이지로 리다이렉트 (Profile.jsp 대신 index.jsp로 변경)
                 response.sendRedirect("index.jsp");
             } else {
-                // 로그인 실패
-                request.setAttribute("errorMessage", "아이디 또는 비밀번호가 일치하지 않습니다.");
-                request.getRequestDispatcher("login.jsp").forward(request, response);
+                // 로그인 실패 - redirect 사용
+                response.sendRedirect("member/login.jsp?error=login_failed");
             }
             
         } catch (SQLException e) {
             e.printStackTrace();
-            // 사용자에게 보여줄 오류 메시지 설정
-            request.setAttribute("errorMessage", "데이터베이스 연결 오류: " + e.getMessage());
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+            // 데이터베이스 오류 - redirect 사용
+            response.sendRedirect("member/login.jsp?error=db_error");
         } finally {
             try {
                 if (rs != null) rs.close();

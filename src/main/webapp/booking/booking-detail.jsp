@@ -8,9 +8,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CinemaWorld - 예매 상세 정보</title>
-    <link rel="stylesheet" href="css/Style.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/booking.css">
+    <link rel="stylesheet" href="../css/Style.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/booking.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         .main-content {
@@ -127,7 +127,6 @@
             border-radius: 4px;
             margin-top: 10px;
             text-align: center;
-            overflow-x: auto;
         }
         
         .screen {
@@ -138,29 +137,25 @@
             margin-bottom: 20px;
             font-size: 12px;
             text-align: center;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
         }
         
         .seat-grid {
             display: grid;
-            grid-template-columns: repeat(18, 1fr);
+            grid-template-columns: repeat(15, 1fr);
             gap: 5px;
             margin: 0 auto;
-            max-width: 900px;
-            overflow-x: auto;
+            max-width: 750px;
         }
         
         .seat {
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 4px;
-            font-size: 12px;
-            background-color: #444;
+            font-size: 14px;
+            background-color: #333;
             color: #ddd;
         }
         
@@ -272,13 +267,13 @@
             }
             
             .seat-grid {
-                grid-template-columns: repeat(9, 1fr);
+                grid-template-columns: repeat(5, 1fr);
             }
             
             .seat {
-                width: 25px;
-                height: 25px;
-                font-size: 10px;
+                width: 35px;
+                height: 35px;
+                font-size: 12px;
             }
         }
     </style>
@@ -286,7 +281,7 @@
 <body class="main-page">
     <div class="site-wrapper">
         <!-- 헤더 포함 -->
-        <jsp:include page="header.jsp" />
+        <jsp:include page="../header.jsp" />
         
         <main class="main-content">
             <section class="booking-detail-section">
@@ -297,13 +292,13 @@
                     Integer userId = (Integer) session.getAttribute("userId");
                     if (userId == null) {
                         // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
-                        response.sendRedirect("member/login.jsp?redirect=my-bookings.jsp");
+                        response.sendRedirect("../member/login.jsp?redirect=booking/my-bookings.jsp");
                         return;
                     }
                     
                     String bookingId = request.getParameter("id");
                     if (bookingId == null || bookingId.isEmpty()) {
-                        response.sendRedirect("my-bookings.jsp");
+                        response.sendRedirect("../member/my-bookings.jsp");
                         return;
                     }
                     
@@ -417,13 +412,17 @@
                             <h3 class="info-group-title">좌석 배치도</h3>
                             <div class="seat-layout">
                                 <div class="screen">SCREEN</div>
-                                <div class="seat-grid">
+                                <div class="seat-grid" style="grid-template-columns: repeat(15, 1fr); max-width: 750px;">
                                     <%
-                                        // 좌석 배치도 생성 (A1~J18까지 표시)
-                                        String[] rows = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
-                                        for (String row : rows) {
-                                            for (int col = 1; col <= 18; col++) {
-                                                String seatId = row + col;
+                                        // 좌석 배치도 생성 - 항상 A1부터 J15까지 표시
+                                        String[] rowLabels = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
+                                        int totalRows = 10; // 10행
+                                        int seatsPerRow = 15; // 15열
+                                        
+                                        for (int row = 0; row < totalRows; row++) {
+                                            for (int col = 1; col <= seatsPerRow; col++) {
+                                                String rowLabel = rowLabels[row];
+                                                String seatId = rowLabel + col;
                                                 boolean isSelected = seatMap.containsKey(seatId);
                                     %>
                                     <div class="seat <%= isSelected ? "selected" : "" %>"><%= seatId %></div>
@@ -432,11 +431,17 @@
                                         }
                                     %>
                                 </div>
+                                <div style="margin-top: 15px; text-align: center; color: #aaa; font-size: 12px;">
+                                    <span style="color: #3498db;">■</span> 선택한 좌석 &nbsp;&nbsp;
+                                    <span style="color: #333;">■</span> 일반 좌석 &nbsp;&nbsp;
+                                    <span style="color: #888;">총 <%= totalRows * seatsPerRow %>석</span>
+                                </div>
                             </div>
                         </div>
                         
+                        
                         <div class="booking-actions">
-                            <a href="my-bookings.jsp" class="action-btn back-btn">목록으로</a>
+                            <a href="../member/my-bookings.jsp" class="action-btn back-btn">목록으로</a>
                             <button class="action-btn cancel-btn" onclick="cancelBooking('<%= bookingId %>')">예매취소</button>
                         </div>
                     </div>
@@ -449,7 +454,7 @@
                     <i class="fas fa-exclamation-circle"></i>
                     <h2>예매 정보를 찾을 수 없습니다</h2>
                     <p>요청하신 예매 정보가 존재하지 않거나 접근 권한이 없습니다.</p>
-                    <a href="my-bookings.jsp" class="back-btn">예매 목록으로</a>
+                    <a href="../member/my-bookings.jsp" class="back-btn">예매 목록으로</a>
                 </div>
                 <%
                         }
@@ -460,7 +465,7 @@
                     <i class="fas fa-exclamation-circle"></i>
                     <h2>데이터베이스 오류</h2>
                     <p>예매 정보를 불러오는 중 오류가 발생했습니다: <%= e.getMessage() %></p>
-                    <a href="my-bookings.jsp" class="back-btn">예매 목록으로</a>
+                    <a href="../member/my-bookings.jsp" class="back-btn">예매 목록으로</a>
                 </div>
                 <%
                     } finally {
@@ -477,7 +482,7 @@
         </main>
         
         <!-- 푸터 포함 -->
-        <jsp:include page="footer.jsp" />
+        <jsp:include page="../footer.jsp" />
     </div>
     
     <script>
@@ -490,7 +495,7 @@
                 button.disabled = true;
                 
                 // 예매 취소 요청
-                window.location.href = 'BookingCancelServlet?id=' + bookingId;
+                window.location.href = '../BookingCancelServlet?id=' + bookingId;
             }
         }
     </script>

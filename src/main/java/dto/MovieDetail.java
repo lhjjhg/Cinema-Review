@@ -1,7 +1,5 @@
 package dto;
 
-import java.util.List;
-
 public class MovieDetail {
     private String movieId;
     private String title;
@@ -10,9 +8,7 @@ public class MovieDetail {
     private String director;
     private String actors;
     private String plot;
-    private String rating; // 관람등급
-    private List<String> stillcuts;
-    
+    private String rating;     
     // 추가된 필드
     private String runningTime;
     private String releaseDate;
@@ -83,14 +79,6 @@ public class MovieDetail {
 
     public void setRating(String rating) {
         this.rating = rating;
-    }
-
-    public List<String> getStillcuts() {
-        return stillcuts;
-    }
-
-    public void setStillcuts(List<String> stillcuts) {
-        this.stillcuts = stillcuts;
     }
     
     // 추가된 getter와 setter 메서드
